@@ -9,7 +9,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <style>
-        /* Reset and Base Styles */
         * {
             margin: 0;
             padding: 0;
@@ -18,26 +17,20 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
             background: #000;
+            overflow: hidden;
             user-select: none;
             -webkit-user-select: none;
-            -webkit-touch-callout: none;
         }
 
-        /* Utility Classes */
         .hidden {
             display: none !important;
         }
 
-        /* App Container */
         #app {
             width: 100vw;
             height: 100vh;
             position: relative;
-            overflow: hidden;
         }
 
         /* Loading Screen */
@@ -71,271 +64,172 @@
             100% { transform: rotate(360deg); }
         }
 
-        .loading-screen p {
-            font-size: 16px;
+        .loading-text {
+            font-size: 18px;
             font-weight: 500;
-            opacity: 0.9;
+            text-align: center;
         }
 
-        /* Camera Container */
+        /* Camera Interface */
         .camera-container {
             width: 100%;
             height: 100%;
             position: relative;
-            overflow: hidden;
         }
 
-        /* Camera Video */
         .camera-video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
         }
 
-        /* UI Overlay */
-        .ui-overlay {
+        .camera-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 10;
-            pointer-events: none;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px) 20px;
+            padding: 40px 20px;
+            pointer-events: none;
         }
 
-        /* Logo Container */
-        .logo-container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding-top: 20px;
-        }
-
+        /* Logo */
         .logo {
-            max-width: 120px;
-            max-height: 60px;
-            width: auto;
-            height: auto;
-            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
-            transition: transform 0.3s ease;
+            align-self: center;
             background: #3373dc;
             color: white;
-            padding: 15px 25px;
+            padding: 15px 30px;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
-            text-align: center;
-            line-height: 1.2;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        /* Detection Status */
-        .detection-status {
-            position: absolute;
-            top: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            padding: 8px 16px;
-            border-radius: 20px;
+        /* Status */
+        .status {
+            align-self: center;
+            background: rgba(0,0,0,0.7);
             color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
             font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            margin-top: 20px;
         }
 
-        .status-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #4CAF50;
-            animation: pulse 2s infinite;
-        }
-
-        .status-indicator.detecting {
-            background: #FF9800;
-            animation: pulse-fast 0.5s infinite;
-        }
-
-        .status-indicator.found {
-            background: #F44336;
-            animation: pulse-found 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        @keyframes pulse-fast {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.2); }
-        }
-
-        @keyframes pulse-found {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.3); }
-        }
-
-        /* Bottom Controls */
-        .bottom-controls {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
+        /* Controls */
+        .controls {
+            align-self: center;
             pointer-events: auto;
         }
 
-        /* Scan Button */
         .scan-button {
-            position: relative;
             width: 80px;
             height: 80px;
             border: 3px solid white;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            overflow: hidden;
+            backdrop-filter: blur(10px);
         }
 
         .scan-button:hover {
             transform: scale(1.05);
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255,255,255,0.2);
         }
 
         .scan-button:active {
             transform: scale(0.95);
         }
 
-        .scan-text {
-            color: white;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            z-index: 2;
-        }
-
-        .scan-pulse {
-            position: absolute;
-            top: -3px;
-            left: -3px;
-            right: -3px;
-            bottom: -3px;
-            border: 2px solid rgba(255, 255, 255, 0.6);
-            border-radius: 50%;
-            animation: scan-pulse 2s infinite;
-        }
-
-        @keyframes scan-pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1.4);
-                opacity: 0;
-            }
-        }
-
         /* Billboard Overlay */
         .billboard-overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-            z-index: 100;
+            background: rgba(0,0,0,0.8);
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 500;
             animation: fadeIn 0.5s ease;
         }
 
-        .billboard-container {
-            position: relative;
-            max-width: 90%;
-            max-height: 70%;
-            animation: slideUp 0.6s ease;
+        .billboard {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
+            border-radius: 15px;
             padding: 40px;
-            color: white;
+            max-width: 90%;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            color: white;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            animation: slideUp 0.6s ease;
         }
 
-        .billboard-content h2 {
-            font-size: 32px;
+        .billboard h1 {
+            font-size: 28px;
             margin-bottom: 10px;
             font-weight: bold;
         }
 
-        .billboard-content h3 {
-            font-size: 24px;
+        .billboard h2 {
+            font-size: 22px;
             margin-bottom: 20px;
-            font-weight: bold;
+            font-weight: 600;
         }
 
-        .billboard-content p {
-            font-size: 14px;
-            opacity: 0.8;
+        .billboard p {
+            font-size: 16px;
             margin-bottom: 30px;
+            opacity: 0.9;
             line-height: 1.5;
         }
 
         .billboard-cta {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255,255,255,0.2);
             border: 2px solid white;
             color: white;
-            padding: 12px 30px;
+            padding: 12px 25px;
             border-radius: 25px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: inline-block;
-            text-decoration: none;
         }
 
-        .close-button {
+        .billboard-cta:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .close-btn {
             position: absolute;
             top: -10px;
             right: -10px;
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.9);
+            background: white;
             border: none;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
             color: #333;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease;
         }
 
-        .close-button:hover {
-            background: white;
+        .close-btn:hover {
             transform: scale(1.1);
         }
 
@@ -347,7 +241,7 @@
         @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(50px) scale(0.9);
+                transform: translateY(30px) scale(0.95);
             }
             to {
                 opacity: 1;
@@ -364,6 +258,7 @@
             height: 100%;
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 1000;
@@ -372,70 +267,61 @@
             padding: 20px;
         }
 
-        .error-content h2 {
+        .error-screen h2 {
             font-size: 24px;
-            margin-bottom: 16px;
-            font-weight: 600;
+            margin-bottom: 15px;
         }
 
-        .error-content p {
+        .error-screen p {
             font-size: 16px;
             margin-bottom: 30px;
             opacity: 0.9;
             line-height: 1.5;
         }
 
-        .retry-button {
-            background: rgba(255, 255, 255, 0.2);
+        .retry-btn {
+            background: rgba(255,255,255,0.2);
             border: 2px solid white;
             color: white;
-            padding: 12px 30px;
+            padding: 12px 25px;
             border-radius: 25px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .retry-button:hover {
+        .retry-btn:hover {
             background: white;
             color: #ee5a24;
         }
 
-        /* Responsive Design */
+        /* Mobile Responsive */
         @media (max-width: 480px) {
+            .camera-overlay {
+                padding: 30px 15px;
+            }
+            
             .logo {
-                max-width: 100px;
-                max-height: 50px;
-                font-size: 14px;
-                padding: 12px 20px;
+                font-size: 16px;
+                padding: 12px 25px;
             }
             
             .scan-button {
                 width: 70px;
                 height: 70px;
-            }
-            
-            .scan-text {
                 font-size: 12px;
             }
             
-            .detection-status {
-                font-size: 12px;
-                padding: 6px 12px;
+            .billboard {
+                padding: 30px 20px;
             }
             
-            .billboard-container {
-                max-width: 95%;
-                max-height: 60%;
-                padding: 30px;
-            }
-
-            .billboard-content h2 {
+            .billboard h1 {
                 font-size: 24px;
             }
-
-            .billboard-content h3 {
+            
+            .billboard h2 {
                 font-size: 20px;
             }
         }
@@ -444,508 +330,356 @@
 <body>
     <div id="app">
         <!-- Loading Screen -->
-        <div id="loading-screen" class="loading-screen">
+        <div id="loading" class="loading-screen">
             <div class="loading-spinner"></div>
-            <p>Initializing Camera & OCR...</p>
+            <div class="loading-text">Starting Camera...</div>
         </div>
 
-        <!-- Main Camera Interface -->
+        <!-- Camera Interface -->
         <div id="camera-container" class="camera-container hidden">
-            <!-- Camera Video Element -->
-            <video id="camera-video" class="camera-video" autoplay muted playsinline></video>
+            <video id="camera" class="camera-video" autoplay muted playsinline></video>
             
-            <!-- Hidden Canvas for OCR Processing -->
-            <canvas id="ocr-canvas" class="hidden"></canvas>
-            
-            <!-- UI Overlay -->
-            <div class="ui-overlay">
-                <!-- Top Logo Area -->
-                <div class="logo-container">
+            <div class="camera-overlay">
+                <div>
                     <div class="logo">YOUR LOGO</div>
+                    <div id="status" class="status">Ready to scan</div>
                 </div>
                 
-                <!-- Detection Status Indicator -->
-                <div id="detection-status" class="detection-status">
-                    <div class="status-indicator"></div>
-                    <span class="status-text">Scanning...</span>
-                </div>
-                
-                <!-- Bottom Controls -->
-                <div class="bottom-controls">
-                    <button id="scan-button" class="scan-button">
-                        <span class="scan-text">SCAN</span>
-                        <div class="scan-pulse"></div>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Custom Billboard Overlay -->
-            <div id="billboard-overlay" class="billboard-overlay hidden">
-                <div class="billboard-container">
-                    <div class="billboard-content">
-                        <h2>YOUR CUSTOM</h2>
-                        <h3>BILLBOARD</h3>
-                        <p>Replace AI advertisements with your own message!</p>
-                        <div class="billboard-cta">Learn More</div>
-                    </div>
-                    <button id="close-billboard" class="close-button">&times;</button>
+                <div class="controls">
+                    <button id="scan-btn" class="scan-button">SCAN</button>
                 </div>
             </div>
         </div>
-        
-        <!-- Error Screen -->
-        <div id="error-screen" class="error-screen hidden">
-            <div class="error-content">
-                <h2>Camera Access Required</h2>
-                <p>This app needs camera access to detect AI billboards. Please allow camera permissions and refresh the page.</p>
-                <button id="retry-button" class="retry-button">Try Again</button>
+
+        <!-- Billboard Overlay -->
+        <div id="billboard-overlay" class="billboard-overlay hidden">
+            <div class="billboard">
+                <button id="close-btn" class="close-btn">&times;</button>
+                <h1>YOUR CUSTOM</h1>
+                <h2>BILLBOARD</h2>
+                <p>Replace AI advertisements with your own message!</p>
+                <button class="billboard-cta">Learn More</button>
             </div>
+        </div>
+
+        <!-- Error Screen -->
+        <div id="error" class="error-screen hidden">
+            <h2>Camera Access Required</h2>
+            <p>This app needs camera access to work. Please allow camera permissions and refresh the page.</p>
+            <button id="retry-btn" class="retry-btn">Try Again</button>
         </div>
     </div>
-    
-    <!-- Tesseract.js OCR Library -->
+
+    <!-- Load Tesseract.js for OCR -->
     <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
     
     <script>
-        /**
-         * AI Billboard Scanner - Standalone Version
-         * Mobile camera app that detects AI-related text and displays custom billboard overlays
-         */
-
-        class AIBillboardScanner {
+        class SimpleBillboardScanner {
             constructor() {
-                // DOM Elements
-                this.loadingScreen = document.getElementById('loading-screen');
+                // Get DOM elements
+                this.loading = document.getElementById('loading');
                 this.cameraContainer = document.getElementById('camera-container');
-                this.errorScreen = document.getElementById('error-screen');
-                this.cameraVideo = document.getElementById('camera-video');
-                this.ocrCanvas = document.getElementById('ocr-canvas');
-                this.scanButton = document.getElementById('scan-button');
-                this.detectionStatus = document.getElementById('detection-status');
-                this.statusIndicator = this.detectionStatus.querySelector('.status-indicator');
-                this.statusText = this.detectionStatus.querySelector('.status-text');
+                this.camera = document.getElementById('camera');
+                this.status = document.getElementById('status');
+                this.scanBtn = document.getElementById('scan-btn');
                 this.billboardOverlay = document.getElementById('billboard-overlay');
-                this.closeBillboard = document.getElementById('close-billboard');
-                this.retryButton = document.getElementById('retry-button');
-
-                // Application State
+                this.closeBtn = document.getElementById('close-btn');
+                this.error = document.getElementById('error');
+                this.retryBtn = document.getElementById('retry-btn');
+                
+                // App state
                 this.isScanning = false;
+                this.scanCount = 0;
                 this.ocrWorker = null;
-                this.cameraStream = null;
-                this.scanInterval = null;
-                this.detectionCount = 0;
-
-                // AI Keywords to detect (case-insensitive)
+                this.ocrReady = false;
+                this.canvas = null;
+                
+                // AI keywords to detect
                 this.aiKeywords = [
                     'ai', 'artificial intelligence', 'machine learning', 'neural', 'algorithm',
                     'automated', 'smart technology', 'deep learning', 'computer vision',
                     'natural language', 'chatbot', 'robotics', 'automation', 'intelligent',
                     'cognitive', 'predictive', 'analytics', 'data science', 'ml', 'nlp'
                 ];
-
-                // Configuration
-                this.config = {
-                    scanInterval: 3000, // Scan every 3 seconds
-                    confidenceThreshold: 60, // Minimum OCR confidence
-                    maxDetections: 2, // Max consecutive detections before showing billboard
-                    videoConstraints: {
-                        video: {
-                            facingMode: { ideal: 'environment' }, // Back camera
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        }
-                    }
-                };
-
+                
                 this.init();
             }
-
-            /**
-             * Initialize the application
-             */
+            
             async init() {
-                console.log('🚀 Initializing AI Billboard Scanner...');
+                console.log('🚀 Starting Simple Billboard Scanner');
                 
                 try {
                     // Setup event listeners
-                    this.setupEventListeners();
+                    this.setupEvents();
                     
-                    // Initialize OCR worker
-                    await this.initializeOCR();
+                    // Initialize OCR in background (don't wait for it)
+                    this.initOCR();
                     
-                    // Request camera access
-                    await this.initializeCamera();
+                    // Start camera
+                    await this.startCamera();
                     
-                    // Start the application
-                    this.startApp();
+                    // Create canvas for OCR
+                    this.createCanvas();
+                    
+                    // Show camera interface
+                    this.showCamera();
                     
                 } catch (error) {
-                    console.error('❌ Initialization failed:', error);
-                    this.showError('Failed to initialize the application. Please check your camera permissions and try again.');
+                    console.error('❌ Init failed:', error);
+                    this.showError();
                 }
             }
-
-            /**
-             * Setup event listeners for UI interactions
-             */
-            setupEventListeners() {
-                // Scan button
-                this.scanButton.addEventListener('click', () => {
-                    if (!this.isScanning) {
-                        this.startScanning();
-                    } else {
-                        this.stopScanning();
-                    }
-                });
-
-                // Close billboard overlay
-                this.closeBillboard.addEventListener('click', () => {
-                    this.hideBillboard();
-                });
-
-                // Retry button
-                this.retryButton.addEventListener('click', () => {
-                    window.location.reload();
-                });
-
-                // Handle page visibility changes
-                document.addEventListener('visibilitychange', () => {
-                    if (document.hidden) {
-                        this.stopScanning();
-                    }
-                });
-            }
-
-            /**
-             * Initialize Tesseract OCR worker
-             */
-            async initializeOCR() {
-                console.log('🔍 Initializing OCR engine...');
+            
+            async initOCR() {
+                console.log('🔍 Initializing OCR in background...');
                 
                 try {
+                    // Wait for Tesseract to be available
+                    let attempts = 0;
+                    while (typeof Tesseract === 'undefined' && attempts < 20) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        attempts++;
+                    }
+                    
+                    if (typeof Tesseract === 'undefined') {
+                        console.warn('⚠️ Tesseract failed to load');
+                        return;
+                    }
+                    
+                    // Create OCR worker
                     this.ocrWorker = await Tesseract.createWorker('eng', 1, {
                         logger: m => {
                             if (m.status === 'recognizing text') {
-                                console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
+                                console.log(`OCR: ${Math.round(m.progress * 100)}%`);
                             }
                         }
                     });
-
+                    
+                    // Configure OCR
                     await this.ocrWorker.setParameters({
                         tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-',
                         tessedit_pageseg_mode: Tesseract.PSM.SPARSE_TEXT
                     });
-
-                    console.log('✅ OCR engine initialized successfully');
+                    
+                    this.ocrReady = true;
+                    console.log('✅ OCR ready');
+                    
                 } catch (error) {
-                    console.error('❌ OCR initialization failed:', error);
-                    throw new Error('Failed to initialize text recognition engine');
+                    console.warn('⚠️ OCR initialization failed:', error);
+                    this.ocrReady = false;
                 }
             }
-
-            /**
-             * Initialize camera access
-             */
-            async initializeCamera() {
-                console.log('📷 Requesting camera access...');
+            
+            createCanvas() {
+                // Create hidden canvas for OCR processing
+                this.canvas = document.createElement('canvas');
+                this.canvas.style.display = 'none';
+                document.body.appendChild(this.canvas);
+            }
+            
+            setupEvents() {
+                // Scan button
+                this.scanBtn.addEventListener('click', () => {
+                    this.handleScan();
+                });
                 
-                try {
-                    // Check if getUserMedia is supported
-                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                        throw new Error('Camera API not supported on this device');
+                // Close billboard
+                this.closeBtn.addEventListener('click', () => {
+                    this.hideBillboard();
+                });
+                
+                // Retry button
+                this.retryBtn.addEventListener('click', () => {
+                    window.location.reload();
+                });
+            }
+            
+            async startCamera() {
+                console.log('📷 Starting camera...');
+                
+                // Check if camera is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Camera not supported');
+                }
+                
+                // Get camera stream
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: { ideal: 'environment' },
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
                     }
-
-                    // Request camera stream
-                    this.cameraStream = await navigator.mediaDevices.getUserMedia(this.config.videoConstraints);
-                    
-                    // Set video source
-                    this.cameraVideo.srcObject = this.cameraStream;
-                    
-                    // Wait for video to be ready
-                    await new Promise((resolve, reject) => {
-                        this.cameraVideo.onloadedmetadata = () => {
-                            this.cameraVideo.play()
-                                .then(resolve)
-                                .catch(reject);
-                        };
-                        this.cameraVideo.onerror = reject;
-                    });
-
-                    // Setup canvas for OCR processing
-                    this.setupOCRCanvas();
-                    
-                    console.log('✅ Camera initialized successfully');
-                } catch (error) {
-                    console.error('❌ Camera initialization failed:', error);
-                    throw new Error('Failed to access camera. Please allow camera permissions and try again.');
+                });
+                
+                // Set video source
+                this.camera.srcObject = stream;
+                
+                // Wait for video to load
+                return new Promise((resolve, reject) => {
+                    this.camera.onloadedmetadata = () => {
+                        this.camera.play().then(resolve).catch(reject);
+                    };
+                    this.camera.onerror = reject;
+                });
+            }
+            
+            showCamera() {
+                console.log('✅ Camera ready');
+                this.loading.classList.add('hidden');
+                this.cameraContainer.classList.remove('hidden');
+            }
+            
+            handleScan() {
+                if (this.isScanning) {
+                    this.stopScan();
+                } else {
+                    this.startScan();
                 }
             }
-
-            /**
-             * Setup canvas for OCR processing
-             */
-            setupOCRCanvas() {
-                const canvas = this.ocrCanvas;
-                const video = this.cameraVideo;
-                
-                canvas.width = video.videoWidth || 640;
-                canvas.height = video.videoHeight || 480;
-                
-                console.log(`📐 OCR Canvas setup: ${canvas.width}x${canvas.height}`);
-            }
-
-            /**
-             * Start the main application interface
-             */
-            startApp() {
-                console.log('🎉 Application started successfully');
-                
-                // Hide loading screen
-                this.loadingScreen.classList.add('hidden');
-                
-                // Show camera interface
-                this.cameraContainer.classList.remove('hidden');
-                
-                // Update status
-                this.updateStatus('ready', 'Ready to scan');
-            }
-
-            /**
-             * Start scanning for AI-related text
-             */
-            startScanning() {
-                if (this.isScanning) return;
-                
-                console.log('🔍 Starting AI text detection...');
+            
+            startScan() {
+                console.log('🔍 Starting AI text scan...');
                 this.isScanning = true;
-                this.detectionCount = 0;
+                this.scanCount = 0;
                 
                 // Update UI
-                this.scanButton.querySelector('.scan-text').textContent = 'STOP';
-                this.updateStatus('detecting', 'Scanning for AI text...');
+                this.scanBtn.textContent = 'STOP';
+                this.status.textContent = 'Scanning for AI text...';
                 
-                // Start scanning interval
+                if (!this.ocrReady) {
+                    // Fallback: simulate scanning if OCR not ready
+                    this.status.textContent = 'OCR loading... using demo mode';
+                    setTimeout(() => {
+                        this.status.textContent = 'AI text detected! (demo)';
+                        this.showBillboard();
+                        this.stopScan();
+                    }, 3000);
+                    return;
+                }
+                
+                // Real OCR scanning
                 this.scanInterval = setInterval(() => {
                     this.performOCRScan();
-                }, this.config.scanInterval);
+                }, 2000); // Scan every 2 seconds
                 
-                // Perform initial scan
+                // Also do immediate scan
                 this.performOCRScan();
             }
-
-            /**
-             * Stop scanning
-             */
-            stopScanning() {
-                if (!this.isScanning) return;
+            
+            async performOCRScan() {
+                if (!this.isScanning || !this.ocrWorker || !this.canvas) return;
                 
-                console.log('⏹️ Stopping AI text detection...');
+                try {
+                    // Capture current camera frame
+                    const ctx = this.canvas.getContext('2d');
+                    this.canvas.width = this.camera.videoWidth || 640;
+                    this.canvas.height = this.camera.videoHeight || 480;
+                    
+                    // Draw video frame to canvas
+                    ctx.drawImage(this.camera, 0, 0, this.canvas.width, this.canvas.height);
+                    
+                    // Convert to image data
+                    const imageData = this.canvas.toDataURL('image/png');
+                    
+                    console.log('🔍 Running OCR on camera frame...');
+                    this.status.textContent = 'Analyzing text...';
+                    
+                    // Perform OCR
+                    const { data: { text, confidence } } = await this.ocrWorker.recognize(imageData);
+                    
+                    console.log(`📝 OCR found: "${text.substring(0, 50)}..." (${confidence}% confidence)`);
+                    
+                    // Check confidence threshold
+                    if (confidence < 60) {
+                        this.status.textContent = 'Text unclear, continuing...';
+                        return;
+                    }
+                    
+                    // Check for AI keywords
+                    const foundKeywords = this.findAIKeywords(text);
+                    
+                    if (foundKeywords.length > 0) {
+                        console.log('🎯 AI keywords found:', foundKeywords);
+                        this.status.textContent = `AI detected: ${foundKeywords[0]}`;
+                        this.showBillboard();
+                        this.stopScan();
+                    } else {
+                        this.status.textContent = 'No AI text found, scanning...';
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ OCR scan failed:', error);
+                    this.status.textContent = 'Scan error, retrying...';
+                }
+            }
+            
+            findAIKeywords(text) {
+                const lowerText = text.toLowerCase();
+                const found = [];
+                
+                for (let keyword of this.aiKeywords) {
+                    if (lowerText.includes(keyword.toLowerCase())) {
+                        found.push(keyword);
+                    }
+                }
+                
+                return found;
+            }
+            
+            stopScan() {
+                console.log('⏹️ Stopping scan');
                 this.isScanning = false;
                 
-                // Clear interval
                 if (this.scanInterval) {
                     clearInterval(this.scanInterval);
                     this.scanInterval = null;
                 }
                 
-                // Update UI
-                this.scanButton.querySelector('.scan-text').textContent = 'SCAN';
-                this.updateStatus('ready', 'Ready to scan');
-                this.detectionCount = 0;
+                // Reset UI
+                this.scanBtn.textContent = 'SCAN';
+                this.status.textContent = 'Ready to scan';
             }
-
-            /**
-             * Perform OCR scan on current camera frame
-             */
-            async performOCRScan() {
-                if (!this.isScanning || !this.ocrWorker) return;
-                
-                try {
-                    // Capture current frame to canvas
-                    const canvas = this.ocrCanvas;
-                    const ctx = canvas.getContext('2d');
-                    const video = this.cameraVideo;
-                    
-                    // Draw current video frame to canvas
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    // Convert canvas to image data for OCR
-                    const imageData = canvas.toDataURL('image/png');
-                    
-                    console.log('🔍 Performing OCR scan...');
-                    
-                    // Perform OCR recognition
-                    const { data: { text, confidence } } = await this.ocrWorker.recognize(imageData);
-                    
-                    console.log(`📝 OCR Result (${confidence}% confidence):`, text.substring(0, 100) + '...');
-                    
-                    // Check if confidence meets threshold
-                    if (confidence >= this.config.confidenceThreshold) {
-                        // Check for AI-related keywords
-                        const foundKeywords = this.detectAIKeywords(text);
-                        
-                        if (foundKeywords.length > 0) {
-                            console.log('🎯 AI keywords detected:', foundKeywords);
-                            this.handleAIDetection(foundKeywords);
-                        } else {
-                            this.updateStatus('detecting', 'No AI text detected');
-                        }
-                    } else {
-                        console.log('⚠️ OCR confidence too low, skipping analysis');
-                        this.updateStatus('detecting', 'Text unclear, continuing scan...');
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ OCR scan failed:', error);
-                    this.updateStatus('detecting', 'Scan error, retrying...');
-                }
-            }
-
-            /**
-             * Detect AI-related keywords in text
-             * @param {string} text - Text to analyze
-             * @returns {Array} Array of detected keywords
-             */
-            detectAIKeywords(text) {
-                const lowerText = text.toLowerCase();
-                const foundKeywords = [];
-                
-                this.aiKeywords.forEach(keyword => {
-                    if (lowerText.includes(keyword.toLowerCase())) {
-                        foundKeywords.push(keyword);
-                    }
-                });
-                
-                return foundKeywords;
-            }
-
-            /**
-             * Handle AI keyword detection
-             * @param {Array} keywords - Detected AI keywords
-             */
-            handleAIDetection(keywords) {
-                this.detectionCount++;
-                
-                console.log(`🎯 AI detection #${this.detectionCount}:`, keywords);
-                
-                // Update status
-                this.updateStatus('found', `AI detected! (${keywords[0]})`);
-                
-                // Show billboard after multiple detections to avoid false positives
-                if (this.detectionCount >= this.config.maxDetections) {
-                    this.showBillboard();
-                    this.stopScanning();
-                }
-            }
-
-            /**
-             * Show custom billboard overlay
-             */
+            
             showBillboard() {
-                console.log('📺 Displaying custom billboard');
-                
-                // Add entrance animation
+                console.log('📺 Showing billboard');
                 this.billboardOverlay.classList.remove('hidden');
                 
-                // Auto-hide after 10 seconds
+                // Haptic feedback
+                if (navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100]);
+                }
+                
+                // Auto-hide after 8 seconds
                 setTimeout(() => {
                     if (!this.billboardOverlay.classList.contains('hidden')) {
                         this.hideBillboard();
                     }
-                }, 10000);
-                
-                // Haptic feedback on supported devices
-                if (navigator.vibrate) {
-                    navigator.vibrate([100, 50, 100]);
-                }
+                }, 8000);
             }
-
-            /**
-             * Hide billboard overlay
-             */
+            
             hideBillboard() {
                 console.log('❌ Hiding billboard');
                 this.billboardOverlay.classList.add('hidden');
-                this.detectionCount = 0;
-                this.updateStatus('ready', 'Ready to scan');
+                this.status.textContent = 'Ready to scan';
             }
-
-            /**
-             * Update detection status indicator
-             * @param {string} status - Status type: 'ready', 'detecting', 'found'
-             * @param {string} text - Status text to display
-             */
-            updateStatus(status, text) {
-                // Update indicator class
-                this.statusIndicator.className = `status-indicator ${status}`;
-                
-                // Update status text
-                this.statusText.textContent = text;
-            }
-
-            /**
-             * Show error screen
-             * @param {string} message - Error message to display
-             */
-            showError(message) {
-                console.error('💥 Application error:', message);
-                
-                // Hide other screens
-                this.loadingScreen.classList.add('hidden');
+            
+            showError() {
+                console.log('💥 Showing error screen');
+                this.loading.classList.add('hidden');
                 this.cameraContainer.classList.add('hidden');
-                
-                // Show error screen
-                this.errorScreen.classList.remove('hidden');
-                
-                // Update error message if needed
-                const errorMessage = this.errorScreen.querySelector('p');
-                if (errorMessage) {
-                    errorMessage.textContent = message;
-                }
-            }
-
-            /**
-             * Cleanup resources when app is closed
-             */
-            cleanup() {
-                console.log('🧹 Cleaning up resources...');
-                
-                // Stop scanning
-                this.stopScanning();
-                
-                // Terminate OCR worker
-                if (this.ocrWorker) {
-                    this.ocrWorker.terminate();
-                    this.ocrWorker = null;
-                }
-                
-                // Stop camera stream
-                if (this.cameraStream) {
-                    this.cameraStream.getTracks().forEach(track => track.stop());
-                    this.cameraStream = null;
-                }
+                this.error.classList.remove('hidden');
             }
         }
-
-        // Initialize app when DOM is loaded
+        
+        // Start the app when page loads
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('🎬 DOM loaded, starting AI Billboard Scanner...');
-            window.aiScanner = new AIBillboardScanner();
+            console.log('🎬 DOM loaded, starting app...');
+            window.scanner = new SimpleBillboardScanner();
         });
-
-        // Cleanup when page is unloaded
-        window.addEventListener('beforeunload', () => {
-            if (window.aiScanner) {
-                window.aiScanner.cleanup();
-            }
-        });
-
-        // Handle errors globally
-        window.addEventListener('error', (event) => {
-            console.error('💥 Global error:', event.error);
-            if (window.aiScanner) {
-                window.aiScanner.showError('An unexpected error occurred. Please refresh the page.');
-            }
+        
+        // Global error handling
+        window.addEventListener('error', (e) => {
+            console.error('💥 Global error:', e.error);
         });
     </script>
 </body>
