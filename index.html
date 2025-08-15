@@ -72,6 +72,18 @@
         border-radius: 8px;
       }
 
+      /* Fallback logo styling when image fails */
+      .logo-fallback {
+        background: var(--accent);
+        color: #000;
+        padding: 15px 30px;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      }
+
       /* Bottom overlay controls - minimized and transparent */
       .overlay-bottom {
         position: fixed;
@@ -215,12 +227,6 @@
         overflow: hidden;
       }
       
-      /* Mission District specific styling */
-      .culture-popup-backdrop.mission-district {
-        background-image: url('mission.jpg');
-        background-size: cover;
-        background-position: center;
-      }
       .culture-popup-backdrop.show {
         opacity: 1;
         visibility: visible;
@@ -242,11 +248,6 @@
         position: relative;
       }
       
-      /* Mission District specific container styling */
-      .culture-popup-backdrop.mission-district .culture-popup-container {
-        color: white;
-        background: none;
-      }
       .culture-popup-header {
         position: absolute;
         top: 0;
@@ -288,95 +289,12 @@
         pointer-events: auto;
       }
       
-      /* Mission District specific close button styling */
-      .culture-popup-backdrop.mission-district .culture-close-btn {
-        color: white;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-      }
       .culture-popup-content {
         flex: 1;
         overflow-y: auto;
         padding: 40px 24px calc(24px + env(safe-area-inset-bottom));
       }
       
-      /* Mission District specific content positioning */
-      .culture-popup-backdrop.mission-district .culture-popup-content {
-        padding: 0;
-        margin: 0;
-        display: block;
-        overflow-y: auto;
-        width: 100%;
-        height: 100%;
-        box-sizing: border-box;
-        overflow-x: hidden;
-        position: relative;
-      }
-      
-      /* Mission District header section */
-      .culture-popup-backdrop.mission-district .mission-header {
-        height: 100vh;
-        width: 100%;
-        background: linear-gradient(transparent 0%, rgba(0,0,0,0.4) 25%, rgba(0,0,0,0.8) 60%, rgba(0,0,0,1) 85%), url('mission.jpg');
-        background-size: cover;
-        background-position: center;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: flex-start;
-        position: relative;
-        margin: 0;
-        padding: 0 40px;
-        box-sizing: border-box;
-      }
-      
-      /* Mission District header text */
-      .culture-popup-backdrop.mission-district .mission-header .culture-popup-title,
-      .culture-popup-backdrop.mission-district .mission-header .culture-popup-body {
-        width: 100%;
-        max-width: 100%;
-        text-align: left;
-      }
-      
-      /* Mission District scrollable content area */
-      .culture-popup-backdrop.mission-district .mission-content {
-        background: black;
-        width: 100%;
-        margin: 0;
-        padding: 0 0 calc(60px + env(safe-area-inset-bottom));
-        box-sizing: border-box;
-        overflow-x: hidden;
-        position: relative;
-      }
-      
-      /* Mission District content images */
-      .culture-popup-backdrop.mission-district .content-image {
-        width: calc(95% - 40px);
-        max-width: calc(95% - 40px);
-        height: auto;
-        margin: 10px 20px 20px 20px;
-        border-radius: 12px;
-        display: block;
-        object-fit: cover;
-        box-sizing: border-box;
-        position: relative;
-        margin-left: auto;
-        margin-right: auto;
-      }
-      
-      .culture-popup-backdrop.mission-district .content-image:first-child {
-        margin-top: 10px;
-      }
-      
-      .culture-popup-backdrop.mission-district .content-image:last-child {
-        margin-bottom: 0;
-      }
-      
-      /* Default content styling for non-Mission neighborhoods */
-      .default-content {
-        padding: 40px 24px calc(24px + env(safe-area-inset-bottom));
-        width: 100%;
-        margin: 0;
-      }
       .culture-popup-title {
         font-family: Helvetica, Arial, sans-serif;
         font-weight: bold;
@@ -394,21 +312,6 @@
         margin: 0;
       }
       
-      /* Mission District specific typography */
-      .culture-popup-backdrop.mission-district .culture-popup-title {
-        font-size: 45px;
-        line-height: 48px;
-        color: white;
-        margin: 0 0 20px 0;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
-      }
-      .culture-popup-backdrop.mission-district .culture-popup-body {
-        font-size: 23px;
-        line-height: 25px;
-        color: white;
-        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
-      }
-      
       /* Responsive adjustments for smaller screens */
       @media (max-width: 768px) {
         .culture-popup-title {
@@ -422,32 +325,22 @@
         .culture-popup-content {
           padding: 32px 20px calc(20px + env(safe-area-inset-bottom));
         }
-        
-        /* Mission District responsive overrides */
-        .culture-popup-backdrop.mission-district .culture-popup-title {
-          font-size: 30px;
-          line-height: 33px;
-        }
-        .culture-popup-backdrop.mission-district .culture-popup-body {
-          font-size: 15px;
-          line-height: 18px;
-        }
-        .culture-popup-backdrop.mission-district .mission-content {
-          padding: 0 0 calc(40px + env(safe-area-inset-bottom));
-        }
-        .culture-popup-backdrop.mission-district .content-image {
-          width: calc(95% - 32px);
-          max-width: calc(95% - 32px);
-          margin: 8px 16px 16px 16px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-        .culture-popup-backdrop.mission-district .content-image:first-child {
-          margin-top: 8px;
-        }
-        .culture-popup-backdrop.mission-district .mission-header {
-          padding: 0 24px;
-        }
+      }
+
+      /* Dev test buttons - remove for production */
+      .dev-test-buttons {
+        margin-top: 8px;
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .dev-test-buttons button {
+        padding: 4px 8px;
+        font-size: 12px;
+        border-radius: 6px;
+        border: 1px solid;
+        cursor: pointer;
       }
     </style>
   </head>
@@ -457,7 +350,7 @@
 
     <!-- Top overlay logo -->
     <div class="logo-overlay">
-      <img src="logo.png" alt="Billboard Variations Logo" class="logo-image" />
+      <div class="logo-fallback" id="logoFallback">YOUR LOGO</div>
     </div>
 
     <!-- Bottom overlay controls -->
@@ -466,12 +359,12 @@
       <button id="btnScan" class="scan-btn" disabled>📸 Scan the Billboard</button>
       
       <!-- Developer test buttons (remove for production) -->
-      <div class="dev-test-buttons" style="margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
-        <button onclick="showCulturePopup('Mission District')" style="padding: 4px 8px; font-size: 12px; background: rgba(163, 230, 53, 0.2); border: 1px solid #a3e635; color: #a3e635; border-radius: 6px;">Test Mission</button>
-        <button onclick="showCulturePopup('SOMA')" style="padding: 4px 8px; font-size: 12px; background: rgba(34, 211, 238, 0.2); border: 1px solid #22d3ee; color: #22d3ee; border-radius: 6px;">Test SOMA</button>
-        <button onclick="showCulturePopup('Castro')" style="padding: 4px 8px; font-size: 12px; background: rgba(163, 230, 53, 0.2); border: 1px solid #a3e635; color: #a3e635; border-radius: 6px;">Test Castro</button>
-        <button onclick="showCulturePopup('Citywide')" style="padding: 4px 8px; font-size: 12px; background: rgba(255, 255, 255, 0.2); border: 1px solid #fff; color: #fff; border-radius: 6px;">Test Citywide</button>
-        <button onclick="showDetectedPopup(['artificial intelligence', 'machine learning'], 'Mission District')" style="padding: 4px 8px; font-size: 12px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; border-radius: 6px;">Test AI Popup</button>
+      <div class="dev-test-buttons">
+        <button onclick="showCulturePopup('Mission District')" style="background: rgba(163, 230, 53, 0.2); border-color: #a3e635; color: #a3e635;">Test Mission</button>
+        <button onclick="showCulturePopup('SOMA')" style="background: rgba(34, 211, 238, 0.2); border-color: #22d3ee; color: #22d3ee;">Test SOMA</button>
+        <button onclick="showCulturePopup('Castro')" style="background: rgba(163, 230, 53, 0.2); border-color: #a3e635; color: #a3e635;">Test Castro</button>
+        <button onclick="showCulturePopup('Citywide')" style="background: rgba(255, 255, 255, 0.2); border-color: #fff; color: #fff;">Test Citywide</button>
+        <button onclick="showDetectedPopup(['artificial intelligence', 'machine learning'], 'Mission District')" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444;">Test AI Popup</button>
       </div>
     </div>
 
@@ -507,24 +400,12 @@
     <div id="culturePopupBackdrop" class="culture-popup-backdrop" aria-hidden="true">
       <div class="culture-popup-container">
         <div class="culture-popup-header">
-          <img src="logo.png" alt="Logo" class="culture-popup-logo" onerror="console.log('Logo failed to load'); this.style.display='none';" onload="console.log('Logo loaded successfully');" />
+          <div class="culture-popup-logo" id="cultureLogoFallback" style="background: var(--accent); color: #000; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: bold;">YOUR LOGO</div>
           <button id="closeCulturePopup" class="culture-close-btn">✕</button>
         </div>
         <div class="culture-popup-content">
-          <div id="missionHeader" class="mission-header" style="display: none;">
-            <h1 id="culturePopupTitle" class="culture-popup-title"></h1>
-            <div id="culturePopupBody" class="culture-popup-body"></div>
-          </div>
-          <div id="missionContent" class="mission-content" style="display: none;">
-            <img src="carlossantana.png" alt="Carlos Santana" class="content-image" />
-            <img src="mural.png" alt="Mission District Mural" class="content-image" />
-          </div>
-          
-          <!-- Default content for non-Mission neighborhoods -->
-          <div id="defaultContent" class="default-content">
-            <h1 id="defaultTitle" class="culture-popup-title"></h1>
-            <div id="defaultBody" class="culture-popup-body"></div>
-          </div>
+          <h1 id="culturePopupTitle" class="culture-popup-title"></h1>
+          <div id="culturePopupBody" class="culture-popup-body"></div>
         </div>
       </div>
     </div>
@@ -683,11 +564,6 @@
         culturePopupTitle: document.getElementById('culturePopupTitle'),
         culturePopupBody: document.getElementById('culturePopupBody'),
         closeCulturePopup: document.getElementById('closeCulturePopup'),
-        missionHeader: document.getElementById('missionHeader'),
-        missionContent: document.getElementById('missionContent'),
-        defaultContent: document.getElementById('defaultContent'),
-        defaultTitle: document.getElementById('defaultTitle'),
-        defaultBody: document.getElementById('defaultBody'),
       };
 
       let videoStream = null;
@@ -744,16 +620,22 @@
       async function startCamera() {
         try {
           setStatus('Requesting camera…', true);
-          videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+          videoStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: { ideal: 'environment' } }, 
+            audio: false 
+          });
           els.video.srcObject = videoStream;
+          
+          // Check camera facing mode and adjust mirroring
           const settings = videoStream.getVideoTracks()[0]?.getSettings?.() || {};
           if (settings.facingMode !== 'user') {
             els.video.style.transform = 'none';
           }
+          
           els.scan.disabled = false;
           setStatus('Ready to scan');
         } catch (e) {
-          console.error(e);
+          console.error('Camera error:', e);
           setStatus('Camera permission denied or unavailable. Tap to retry.');
         }
       }
@@ -808,36 +690,10 @@
 
       function showCulturePopup(neighborhoodName) {
         const name = neighborhoodName || currentNeighborhoodName || 'San Francisco';
+        const content = CULTURE[name] || CULTURE['Citywide'];
         
-        // Remove any existing neighborhood classes
-        els.culturePopupBackdrop.classList.remove('mission-district');
-        
-        // Hide all content sections first
-        els.missionHeader.style.display = 'none';
-        els.missionContent.style.display = 'none';
-        els.defaultContent.style.display = 'none';
-        
-        // Special content for Mission District matching your design
-        if (name === 'Mission District') {
-          els.culturePopupTitle.textContent = 'Welcome to Mission District';
-          els.culturePopupBody.textContent = "The Mission is SF's most vibrant Latino neighborhood, known for authentic Mexican culture, incredible street food (burritos were invented here), and world-famous murals along Balmy Alley and 24th Street.";
-          
-          // Show Mission District sections
-          els.missionHeader.style.display = 'flex';
-          els.missionContent.style.display = 'block';
-          
-          // Add Mission District specific styling
-          els.culturePopupBackdrop.classList.add('mission-district');
-        } else {
-          // Default content for other neighborhoods
-          const content = CULTURE[name] || CULTURE['Citywide'];
-          els.defaultTitle.textContent = `Welcome to ${name}`;
-          els.defaultBody.textContent = content.intro + ' ' + content.body.join(' ');
-          
-          // Show default content
-          els.defaultContent.style.display = 'block';
-        }
-        
+        els.culturePopupTitle.textContent = `Welcome to ${name}`;
+        els.culturePopupBody.textContent = content.intro + ' ' + content.body.join(' ');
         els.culturePopupBackdrop.classList.add('show');
       }
 
@@ -849,9 +705,19 @@
         setStatus('Scanning…', true);
         const canvas = drawVideoToCanvas(1280);
         try {
-          const { data } = await Tesseract.recognize(canvas, 'eng', { logger: m => { if (m.status === 'recognizing text') setStatus(`Scanning… ${(m.progress*100).toFixed(0)}%`, true); } });
+          const { data } = await Tesseract.recognize(canvas, 'eng', { 
+            logger: m => { 
+              if (m.status === 'recognizing text') {
+                setStatus(`Scanning… ${(m.progress*100).toFixed(0)}%`, true);
+              }
+            } 
+          });
           const text = data?.text || '';
           const terms = extractKeywordsFromText(text);
+          
+          console.log('OCR Result:', text.substring(0, 100) + '...');
+          console.log('AI Keywords found:', terms);
+          
           if (terms.length) {
             setStatus('AI detected!');
             showDetectedPopup(terms, currentNeighborhoodName);
@@ -859,37 +725,32 @@
             setStatus('No AI text detected. Try a closer angle or different ad.');
           }
         } catch (e) {
-          console.error(e);
+          console.error('OCR Error:', e);
           setStatus('OCR failed. Try again.');
         }
       }
 
-      async function registerServiceWorker() {
-        if (!('serviceWorker' in navigator)) return;
-        try {
-          await navigator.serviceWorker.register('sw.js');
-        } catch (e) {
-          console.warn('SW registration failed', e);
-        }
-      }
-
       async function init() {
-        registerServiceWorker();
+        // Get location and update culture info
         await getLocationAndUpdate();
-        startCamera(); // try to auto-start immediately
+        
+        // Start camera
+        startCamera();
 
-        // manual scan
+        // Event listeners
         els.scan.addEventListener('click', scanBillboard);
 
-        // fallback gesture to kick camera on iOS if needed
+        // Fallback gesture to kick camera on iOS if needed
         document.addEventListener('touchstart', function once() {
           document.removeEventListener('touchstart', once);
           if (!videoStream) startCamera();
         }, { passive: true });
 
+        // Popup event listeners
         els.popupBackdrop.addEventListener('click', (e) => {
           if (e.target === els.popupBackdrop) hideDetectedPopup();
         });
+        
         els.popupExplore.addEventListener('click', () => {
           hideDetectedPopup();
           showCulturePopup();
@@ -899,6 +760,16 @@
         
         els.culturePopupBackdrop.addEventListener('click', (e) => {
           if (e.target === els.culturePopupBackdrop) hideCulturePopup();
+        });
+
+        // Global error handling
+        window.addEventListener('error', (e) => {
+          console.error('Global error:', e.error);
+        });
+
+        window.addEventListener('unhandledrejection', (e) => {
+          console.error('Unhandled promise rejection:', e.reason);
+          e.preventDefault();
         });
       }
 
