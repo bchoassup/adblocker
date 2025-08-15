@@ -65,6 +65,19 @@
         min-height: 20px;
       }
 
+      .ai-detected {
+        background: rgba(163, 230, 53, 0.9);
+        color: #000;
+        font-weight: bold;
+        animation: pulse-detected 1s ease-in-out;
+      }
+
+      @keyframes pulse-detected {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+
       .scan-btn {
         padding: 15px 40px;
         border-radius: 25px;
@@ -177,7 +190,7 @@
 
     <!-- Logo -->
     <div class="logo">
-      <img src="logo.png" alt="Logo" style="height: 40px; width: auto;" onerror="this.style.display='none'; this.parentElement.innerHTML='AI SCANNER';" />
+      <img src="logo.png" alt="Logo" style="height: 52px; width: auto;" onerror="this.style.display='none'; this.parentElement.innerHTML='AI SCANNER';" />
     </div>
 
     <!-- Debug Info (hidden by default) -->
@@ -234,9 +247,18 @@
         }
       }
 
-      // Set status with optional loading
-      function setStatus(text, loading = false) {
+      // Set status with optional loading and styling
+      function setStatus(text, loading = false, isAIDetected = false) {
         status.innerHTML = loading ? `<span class="spinner"></span> ${text}` : text;
+        
+        // Add special styling for AI detection
+        if (isAIDetected) {
+          status.classList.add('ai-detected');
+          setTimeout(() => {
+            status.classList.remove('ai-detected');
+          }, 2000);
+        }
+        
         debugLog(`Status: ${text}`);
       }
 
@@ -430,7 +452,8 @@
           debugLog(`🎯 Found keywords: ${foundKeywords.join(', ')}`);
           
           if (foundKeywords.length > 0) {
-            setStatus(`AI detected: ${foundKeywords[0]}`);
+            const detectedWord = foundKeywords[0];
+            setStatus(`🎯 AI Detected: "${detectedWord}"`, false, true);
             debugLog(`✅ AI DETECTED! Keywords: ${foundKeywords.join(', ')}`);
             showBillboardImage();
           } else {
