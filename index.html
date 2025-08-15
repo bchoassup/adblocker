@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0f172a" />
-    <title>AI Billboard Scanner</title>
+    <title>AI Billboard Scanner - Simple Test</title>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
@@ -57,32 +57,54 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 10px;
+        gap: 15px;
       }
 
       .status {
-        color: rgba(255,255,255,0.8);
-        font-size: 14px;
+        color: rgba(255,255,255,0.9);
+        font-size: 16px;
         text-align: center;
+        background: rgba(0,0,0,0.7);
+        padding: 8px 16px;
+        border-radius: 20px;
+        min-height: 20px;
       }
 
       .scan-btn {
-        padding: 12px 30px;
+        padding: 15px 40px;
         border-radius: 25px;
         border: 2px solid white;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0,0,0,0.6);
         color: white;
         font-weight: bold;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 18px;
       }
 
       .scan-btn:disabled { 
         opacity: 0.5; 
       }
 
-      /* Simple image overlay - THIS IS WHAT YOU WANT */
-      .image-overlay {
+      /* Test buttons */
+      .test-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .test-buttons button {
+        padding: 8px 15px;
+        font-size: 14px;
+        border: 1px solid white;
+        background: rgba(255,255,255,0.1);
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      /* BILLBOARD IMAGE OVERLAY - THE MAIN THING WE'RE TESTING */
+      .billboard-overlay {
         position: fixed;
         inset: 0;
         z-index: 9999;
@@ -93,53 +115,40 @@
         flex-direction: column;
       }
 
-      .image-overlay.show {
+      .billboard-overlay.show {
         display: flex;
       }
 
-      .neighborhood-image {
+      .billboard-image {
         max-width: 90vw;
         max-height: 70vh;
         border-radius: 10px;
         margin-bottom: 20px;
+        border: 3px solid #a3e635;
       }
 
-      .neighborhood-name {
-        font-size: 24px;
+      .billboard-title {
+        font-size: 28px;
         font-weight: bold;
         color: #a3e635;
         text-align: center;
+        margin-bottom: 20px;
       }
 
       .close-btn {
         position: absolute;
-        top: 20px;
-        right: 20px;
-        width: 40px;
-        height: 40px;
+        top: 30px;
+        right: 30px;
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
         background: white;
         border: none;
-        font-size: 20px;
+        font-size: 24px;
         cursor: pointer;
-      }
-
-      /* Test buttons */
-      .test-buttons {
         display: flex;
-        gap: 5px;
-        flex-wrap: wrap;
+        align-items: center;
         justify-content: center;
-      }
-
-      .test-buttons button {
-        padding: 5px 10px;
-        font-size: 12px;
-        border: 1px solid white;
-        background: rgba(255,255,255,0.1);
-        color: white;
-        border-radius: 5px;
-        cursor: pointer;
       }
 
       .spinner {
@@ -157,6 +166,23 @@
       }
 
       .hidden { display: none; }
+
+      /* Debug info */
+      .debug-info {
+        position: fixed;
+        top: 80px;
+        left: 20px;
+        right: 20px;
+        background: rgba(0,0,0,0.8);
+        color: #a3e635;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-family: monospace;
+        z-index: 2000;
+        max-height: 200px;
+        overflow-y: auto;
+      }
     </style>
   </head>
   <body>
@@ -165,277 +191,224 @@
 
     <!-- Logo -->
     <div class="logo">
-      <img src="logo.png" alt="Logo" style="height: 40px; width: auto;" onerror="this.style.display='none'; this.parentElement.innerHTML='YOUR LOGO';" />
+      <img src="logo.png" alt="Logo" style="height: 40px; width: auto;" onerror="this.style.display='none'; this.parentElement.innerHTML='AI SCANNER';" />
     </div>
+
+    <!-- Debug Info -->
+    <div id="debugInfo" class="debug-info"></div>
 
     <!-- Controls -->
     <div class="controls">
       <div class="status" id="status">Starting...</div>
-      <button id="scanBtn" class="scan-btn" disabled>📸 Scan Billboard</button>
+      <button id="scanBtn" class="scan-btn" disabled>📸 Scan for AI Text</button>
       
-      <!-- Location Testing -->
+      <!-- Simple test buttons -->
       <div class="test-buttons">
-        <select id="locationSelect" style="padding: 5px; margin: 5px; background: rgba(0,0,0,0.7); color: white; border: 1px solid white; border-radius: 5px;">
-          <option value="">Use Real Location</option>
-          <option value="Mission District">🎯 Force Mission District</option>
-          <option value="SOMA">🎯 Force SOMA</option>
-          <option value="Castro">🎯 Force Castro</option>
-          <option value="Marina">🎯 Force Marina</option>
-          <option value="Mission Bay">🎯 Force Mission Bay</option>
-          <option value="Haight-Ashbury">🎯 Force Haight-Ashbury</option>
-        </select>
-        <button onclick="testFullFlow()">🧪 Test Full AI Detection</button>
-      </div>
-      
-      <!-- Quick image tests -->
-      <div class="test-buttons">
-        <button onclick="showImage('Mission District')">📸 Mission</button>
-        <button onclick="showImage('SOMA')">📸 SOMA</button>
-        <button onclick="showImage('Castro')">📸 Castro</button>
-        <button onclick="showImage('Marina')">📸 Marina</button>
-        <button onclick="showImage('Mission Bay')">📸 Mission Bay</button>
-        <button onclick="showImage('Haight-Ashbury')">📸 Haight</button>
+        <button onclick="testShowImage()">🧪 Test Show Image</button>
+        <button onclick="simulateAIDetection()">🤖 Simulate AI Detection</button>
+        <button onclick="toggleDebug()">🔍 Toggle Debug</button>
       </div>
     </div>
 
-    <!-- SIMPLE IMAGE OVERLAY - This is what shows instead of popup -->
-    <div id="imageOverlay" class="image-overlay">
+    <!-- BILLBOARD OVERLAY - This is what we're trying to get working -->
+    <div id="billboardOverlay" class="billboard-overlay">
       <button id="closeBtn" class="close-btn">✕</button>
-      <img id="neighborhoodImage" class="neighborhood-image" alt="Neighborhood" />
-      <div id="neighborhoodName" class="neighborhood-name"></div>
+      <div class="billboard-title">Mission District</div>
+      <img id="billboardImage" class="billboard-image" src="assets/mission.jpg" alt="Mission District Billboard" />
     </div>
 
     <canvas id="canvas" class="hidden"></canvas>
 
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script>
-      // AI Keywords
+      // SIMPLIFIED AI KEYWORDS - just a few for testing
       const AI_KEYWORDS = [
-        "ai", "artificial intelligence", "machine learning", "deep learning",
-        "neural network", "algorithm", "computer vision", "nlp", "chatbot",
-        "automation", "smart", "intelligent", "predictive", "generative"
+        "ai", "artificial intelligence", "machine learning", "chatbot", "smart", "intelligent"
       ];
-
-      // Neighborhoods with image files
-      const NEIGHBORHOODS = {
-        "Mission District": "assets/mission.jpg",
-        "SOMA": "assets/soma.jpg", 
-        "Castro": "assets/castro.jpg",
-        "Marina": "assets/marina.jpg",
-        "Mission Bay": "assets/mission-bay.jpg",
-        "Haight-Ashbury": "assets/haight.jpg"
-      };
-
-      // Neighborhood boundaries
-      const BOUNDS = {
-        "Mission District": [37.747, -122.427, 37.767, -122.403],
-        "SOMA": [37.770, -122.411, 37.790, -122.392],
-        "Castro": [37.758, -122.447, 37.769, -122.430],
-        "Marina": [37.800, -122.449, 37.807, -122.428],
-        "Mission Bay": [37.768, -122.395, 37.778, -122.385],
-        "Haight-Ashbury": [37.765, -122.454, 37.772, -122.441]
-      };
 
       // Elements
       const camera = document.getElementById('camera');
       const scanBtn = document.getElementById('scanBtn');
       const status = document.getElementById('status');
-      const imageOverlay = document.getElementById('imageOverlay');
-      const neighborhoodImage = document.getElementById('neighborhoodImage');
-      const neighborhoodName = document.getElementById('neighborhoodName');
+      const billboardOverlay = document.getElementById('billboardOverlay');
+      const billboardImage = document.getElementById('billboardImage');
       const closeBtn = document.getElementById('closeBtn');
       const canvas = document.getElementById('canvas');
-      const locationSelect = document.getElementById('locationSelect');
+      const debugInfo = document.getElementById('debugInfo');
 
-      let currentNeighborhood = null;
       let stream = null;
-      let testMode = false;
+      let showDebug = true;
+
+      // Debug logging function
+      function debugLog(message) {
+        console.log('🔍 DEBUG:', message);
+        if (showDebug) {
+          const time = new Date().toLocaleTimeString();
+          debugInfo.innerHTML += `<div>${time}: ${message}</div>`;
+          debugInfo.scrollTop = debugInfo.scrollHeight;
+        }
+      }
 
       // Set status with optional loading
       function setStatus(text, loading = false) {
         status.innerHTML = loading ? `<span class="spinner"></span> ${text}` : text;
+        debugLog(`Status: ${text}`);
       }
 
-      // Get user location and determine neighborhood
-      async function getLocation() {
-        // Check if we're forcing a test location
-        const forcedLocation = locationSelect.value;
-        if (forcedLocation) {
-          console.log('🎯 Using forced location:', forcedLocation);
-          testMode = true;
-          return forcedLocation;
-        }
-        
-        if (!navigator.geolocation) return null;
-        
-        return new Promise((resolve) => {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              const { latitude, longitude } = pos.coords;
-              console.log('📍 Real coordinates:', latitude, longitude);
-              
-              // Check which neighborhood
-              for (const [name, bounds] of Object.entries(BOUNDS)) {
-                const [minLat, minLon, maxLat, maxLon] = bounds;
-                if (latitude >= minLat && latitude <= maxLat && 
-                    longitude >= minLon && longitude <= maxLon) {
-                  resolve(name);
-                  return;
-                }
-              }
-              resolve(null);
-            },
-            () => resolve(null),
-            { timeout: 5000 }
-          );
-        });
-      }
-
-      // Update location when dropdown changes
-      function updateLocation() {
-        const selected = locationSelect.value;
-        if (selected) {
-          currentNeighborhood = selected;
-          testMode = true;
-          setStatus(`🎯 Test Mode: ${selected}`);
-          console.log('🧪 Switched to test location:', selected);
-        } else {
-          testMode = false;
-          setStatus('Using real location...', true);
-          getLocation().then(location => {
-            currentNeighborhood = location;
-            if (location) {
-              setStatus(`📍 Real location: ${location}`);
-            } else {
-              setStatus('Location unknown');
-            }
-          });
-        }
+      // Toggle debug panel
+      function toggleDebug() {
+        showDebug = !showDebug;
+        debugInfo.style.display = showDebug ? 'block' : 'none';
+        debugLog(`Debug panel ${showDebug ? 'enabled' : 'disabled'}`);
       }
 
       // Start camera
       async function startCamera() {
         try {
           setStatus('Starting camera...', true);
+          debugLog('Requesting camera access...');
+          
           stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: { ideal: 'environment' } }
           });
+          
           camera.srcObject = stream;
           scanBtn.disabled = false;
           setStatus('Ready to scan');
+          debugLog('✅ Camera started successfully');
+          
         } catch (error) {
           setStatus('Camera access denied');
+          debugLog(`❌ Camera error: ${error.message}`);
         }
       }
 
-      // Show neighborhood image - THIS IS THE KEY FUNCTION
-      function showImage(neighborhood) {
-        if (!NEIGHBORHOODS[neighborhood]) {
-          console.log('Unknown neighborhood:', neighborhood);
+      // Show billboard image - THE MAIN FUNCTION WE'RE TESTING
+      function showBillboardImage() {
+        debugLog('🎬 Attempting to show billboard image...');
+        
+        // Check if image element exists
+        if (!billboardImage) {
+          debugLog('❌ Billboard image element not found!');
           return;
         }
 
-        // Set the image source
-        neighborhoodImage.src = NEIGHBORHOODS[neighborhood];
-        
-        // Set the neighborhood name
-        neighborhoodName.textContent = neighborhood;
+        // Check image source
+        debugLog(`📸 Image src: ${billboardImage.src}`);
         
         // Show the overlay
-        imageOverlay.classList.add('show');
+        billboardOverlay.classList.add('show');
+        debugLog('✅ Billboard overlay shown');
         
-        console.log('Showing image for:', neighborhood);
+        // Test if image loads
+        billboardImage.onload = () => {
+          debugLog('✅ Image loaded successfully');
+        };
         
-        // Auto-hide after 5 seconds
+        billboardImage.onerror = (error) => {
+          debugLog(`❌ Image failed to load: ${error}`);
+          debugLog(`❌ Attempted to load: ${billboardImage.src}`);
+        };
+
+        // Auto-hide after 8 seconds
         setTimeout(() => {
-          hideImage();
-        }, 5000);
+          hideBillboardImage();
+        }, 8000);
       }
 
-      // Hide image overlay
-      function hideImage() {
-        imageOverlay.classList.remove('show');
+      // Hide billboard image
+      function hideBillboardImage() {
+        billboardOverlay.classList.remove('show');
+        debugLog('📴 Billboard overlay hidden');
       }
 
-      // Test full AI detection flow
-      function testFullFlow() {
-        const selectedLocation = locationSelect.value || currentNeighborhood;
-        
-        if (!selectedLocation) {
-          alert('Please select a test location first!');
-          return;
-        }
-        
-        console.log('🧪 Testing full AI detection flow for:', selectedLocation);
-        
-        // Simulate AI detection
-        setStatus('🧪 Simulating AI detection...', true);
+      // Test function - just show the image directly
+      function testShowImage() {
+        debugLog('🧪 TEST: Direct image show');
+        showBillboardImage();
+      }
+
+      // Simulate AI detection without OCR
+      function simulateAIDetection() {
+        debugLog('🤖 SIMULATE: AI detection flow');
+        setStatus('AI text detected!');
         
         setTimeout(() => {
-          setStatus('🤖 AI detected! (simulated)');
-          showImage(selectedLocation);
-        }, 1500);
+          showBillboardImage();
+        }, 500);
       }
 
-      // Scan for AI text
-      async function scan() {
-        setStatus('Scanning...', true);
+      // Scan for AI text - REAL OCR VERSION
+      async function scanForAI() {
+        setStatus('Scanning for AI text...', true);
+        debugLog('🔍 Starting OCR scan...');
         
         // Capture frame
         const ctx = canvas.getContext('2d');
-        canvas.width = camera.videoWidth;
-        canvas.height = camera.videoHeight;
-        ctx.drawImage(camera, 0, 0);
+        canvas.width = camera.videoWidth || 640;
+        canvas.height = camera.videoHeight || 480;
+        ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
+        
+        debugLog(`📐 Canvas size: ${canvas.width}x${canvas.height}`);
         
         try {
           // OCR
-          const { data } = await Tesseract.recognize(canvas, 'eng');
-          const text = data.text.toLowerCase();
+          debugLog('🔍 Running OCR...');
+          const { data } = await Tesseract.recognize(canvas, 'eng', {
+            logger: m => {
+              if (m.status === 'recognizing text') {
+                setStatus(`Analyzing... ${(m.progress * 100).toFixed(0)}%`, true);
+              }
+            }
+          });
+          
+          const text = data.text || '';
+          debugLog(`📝 OCR result: "${text.substring(0, 100)}..."`);
           
           // Check for AI keywords
-          const foundAI = AI_KEYWORDS.some(keyword => text.includes(keyword));
+          const lowerText = text.toLowerCase();
+          const foundKeywords = AI_KEYWORDS.filter(keyword => lowerText.includes(keyword));
           
-          if (foundAI) {
-            setStatus('AI detected!');
-            
-            // Show neighborhood image if we know the location
-            if (currentNeighborhood) {
-              showImage(currentNeighborhood);
-            } else {
-              setStatus('AI found, but location unknown');
-            }
+          debugLog(`🔍 Checking for AI keywords in: "${lowerText.substring(0, 50)}..."`);
+          debugLog(`🎯 Found keywords: ${foundKeywords.join(', ')}`);
+          
+          if (foundKeywords.length > 0) {
+            setStatus(`AI detected: ${foundKeywords[0]}`);
+            debugLog(`✅ AI DETECTED! Keywords: ${foundKeywords.join(', ')}`);
+            showBillboardImage();
           } else {
             setStatus('No AI text found');
+            debugLog('❌ No AI keywords found');
           }
+          
         } catch (error) {
           setStatus('Scan failed');
+          debugLog(`❌ OCR error: ${error.message}`);
         }
       }
 
       // Initialize app
       async function init() {
-        setStatus('Getting location...', true);
-        currentNeighborhood = await getLocation();
-        
-        if (currentNeighborhood) {
-          setStatus(`Location: ${currentNeighborhood}`, true);
-        } else {
-          setStatus('Location unknown', true);
-        }
+        debugLog('🚀 App starting...');
+        setStatus('Initializing...', true);
         
         await startCamera();
         
         // Event listeners
-        scanBtn.addEventListener('click', scan);
-        closeBtn.addEventListener('click', hideImage);
-        locationSelect.addEventListener('change', updateLocation);
+        scanBtn.addEventListener('click', scanForAI);
+        closeBtn.addEventListener('click', hideBillboardImage);
         
         // Click outside to close
-        imageOverlay.addEventListener('click', (e) => {
-          if (e.target === imageOverlay) hideImage();
+        billboardOverlay.addEventListener('click', (e) => {
+          if (e.target === billboardOverlay) {
+            hideBillboardImage();
+          }
         });
+        
+        debugLog('✅ App initialized');
       }
 
+      // Start the app
       init();
     </script>
   </body>
