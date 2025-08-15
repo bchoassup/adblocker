@@ -194,8 +194,8 @@
       <img src="logo.png" alt="Logo" style="height: 40px; width: auto;" onerror="this.style.display='none'; this.parentElement.innerHTML='AI SCANNER';" />
     </div>
 
-    <!-- Debug Info -->
-    <div id="debugInfo" class="debug-info"></div>
+    <!-- Debug Info (hidden by default) -->
+    <div id="debugInfo" class="debug-info" style="display: none;"></div>
 
     <!-- Controls -->
     <div class="controls">
@@ -206,7 +206,6 @@
       <div class="test-buttons">
         <button onclick="testShowImage()">🧪 Test Show Image</button>
         <button onclick="simulateAIDetection()">🤖 Simulate AI Detection</button>
-        <button onclick="toggleDebug()">🔍 Toggle Debug</button>
       </div>
     </div>
 
@@ -237,7 +236,7 @@
       const debugInfo = document.getElementById('debugInfo');
 
       let stream = null;
-      let showDebug = true;
+      let showDebug = false;
 
       // Debug logging function
       function debugLog(message) {
