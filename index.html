@@ -1,686 +1,908 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AI Billboard Scanner</title>
-    <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>AI Billboard Scanner • SF Culture Replacer</title>
+    <meta name="description" content="Point your phone at AI billboards to reveal authentic neighborhood stories and culture." />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%230f172a'/%3E%3Ctext x='50%25' y='58%25' dominant-baseline='middle' text-anchor='middle' font-size='72' fill='%23a3e635' font-family='Arial,Helvetica,sans-serif'%3EAI%3C/text%3E%3Ctext x='50%25' y='98%25' dominant-baseline='middle' text-anchor='middle' font-size='28' fill='%23e2e8f0' font-family='Arial,Helvetica,sans-serif'%3ESF%3C/text%3E%3C/svg%3E" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      :root {
+        --bg: #0b1020;
+        --panel: #111827;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --accent: #a3e635;
+        --accent-2: #22d3ee;
+        --danger: #ef4444;
+      }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #000;
-            overflow: hidden;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+      html, body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+        box-sizing: border-box;
+      }
 
-        .hidden {
-            display: none !important;
-        }
+      /* Full-screen camera */
+      video#camera {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        transform: scaleX(-1);
+        z-index: 0;
+        background: #000;
+      }
 
-        #app {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-        }
+      /* Top overlay logo */
+      .logo-overlay {
+        position: fixed;
+        top: calc(env(safe-area-inset-top) + 16px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        width: calc(100vw - 32px);
+        max-width: 95vw;
+        height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 16px;
+        box-sizing: border-box;
+      }
+      .logo-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.9)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7));
+        border-radius: 8px;
+      }
 
-        /* Loading Screen */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            color: white;
-        }
+      /* Bottom overlay controls - minimized and transparent */
+      .overlay-bottom {
+        position: fixed;
+        left: 0; right: 0; bottom: 0;
+        z-index: 50;
+        padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
+        display: grid;
+        gap: 4px;
+        background: transparent;
+      }
+      .status {
+        text-align: center;
+        color: rgba(255,255,255,0.8);
+        font-size: 0.85rem;
+        min-height: 1.2em;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+      }
+      .scan-btn {
+        justify-self: center;
+        width: min(85vw, 280px);
+        padding: 10px 12px;
+        border-radius: 50px;
+        border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(8px);
+        color: white;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+      }
+      .scan-btn:disabled { opacity: 0.6; }
 
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
+      /* Content panels below camera (for Explore CTA) */
+      .results {
+        margin-top: 100vh;
+        padding: 16px;
+        display: grid;
+        gap: 10px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 12px 14px;
+      }
+      .culture { display: grid; gap: 8px; }
+      .culture h3 { margin: 0 0 4px 0; font-size: 1.1rem; }
+      .culture p { margin: 0; color: var(--text); line-height: 1.45; }
+      .muted { color: var(--muted); }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+      footer {
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+        color: var(--muted);
+        font-size: 0.85rem;
+        text-align: center;
+      }
 
-        .loading-text {
-            font-size: 18px;
-            font-weight: 500;
-            text-align: center;
-        }
+      .visually-hidden {
+        position: absolute !important;
+        height: 1px; width: 1px;
+        overflow: hidden;
+        clip: rect(1px, 1px, 1px, 1px);
+        white-space: nowrap;
+      }
 
-        /* Camera Interface */
-        .camera-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
+      .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
 
-        .camera-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+      /* Popup styles */
+      .popup-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: start center;
+        padding-top: max(16px, calc(env(safe-area-inset-top) + 8px));
+        background: rgba(2, 6, 23, 0.45);
+        backdrop-filter: blur(8px);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 250ms ease, visibility 250ms ease;
+      }
+      .popup-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+      .popup-card {
+        width: min(90vw, 720px);
+        border-radius: 20px;
+        color: #fff;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.3);
+        transform: translateY(-120%);
+        transition: transform 350ms cubic-bezier(.22,.9,.3,1);
+      }
+      .popup-backdrop.show .popup-card { transform: translateY(0); }
+      .popup-content { padding: 14px 16px; }
+      .popup-title { font-weight: 800; letter-spacing: 0.2px; text-align: center; }
+      .popup-keywords { margin-top: 6px; font-size: 0.95rem; opacity: 0.95; text-align: center; }
+      .popup-neighborhood { 
+        margin-top: 12px; 
+        font-size: 26px; 
+        font-weight: bold; 
+        color: #ffffff; 
+        text-align: center;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+      .popup-message { margin-top: 12px; font-size: 0.95rem; opacity: 0.95; text-align: center; }
+      .popup-btn {
+        margin-top: 10px;
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.35);
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        font-weight: 800;
+      }
 
-        .camera-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 40px 20px;
-            pointer-events: none;
+      /* Full-screen culture popup */
+      .culture-popup-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10000;
+        background: white;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 300ms ease, visibility 300ms ease;
+        transform: translateY(100%);
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      
+      /* Mission District specific styling */
+      .culture-popup-backdrop.mission-district {
+        background-image: url('mission.jpg');
+        background-size: cover;
+        background-position: center;
+      }
+      .culture-popup-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateY(0);
+        transition: opacity 300ms ease, visibility 300ms ease, transform 350ms cubic-bezier(0.22, 0.9, 0.3, 1);
+      }
+      .culture-popup-container {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        color: black;
+        font-family: Helvetica, Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        overflow-x: hidden;
+        position: relative;
+      }
+      
+      /* Mission District specific container styling */
+      .culture-popup-backdrop.mission-district .culture-popup-container {
+        color: white;
+        background: none;
+      }
+      .culture-popup-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: auto;
+        padding: 0;
+        margin: 0;
+        z-index: 10001;
+        pointer-events: none;
+      }
+      .culture-popup-logo {
+        position: absolute;
+        top: calc(env(safe-area-inset-top) + 20px);
+        left: 20px;
+        height: 20px;
+        width: auto;
+        display: block;
+        object-fit: contain;
+        pointer-events: auto;
+      }
+      .culture-close-btn {
+        position: absolute;
+        top: calc(env(safe-area-inset-top) + 20px);
+        right: 20px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: none;
+        color: black;
+        font-size: 24px;
+        font-weight: normal;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        pointer-events: auto;
+      }
+      
+      /* Mission District specific close button styling */
+      .culture-popup-backdrop.mission-district .culture-close-btn {
+        color: white;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+      }
+      .culture-popup-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 40px 24px calc(24px + env(safe-area-inset-bottom));
+      }
+      
+      /* Mission District specific content positioning */
+      .culture-popup-backdrop.mission-district .culture-popup-content {
+        padding: 0;
+        margin: 0;
+        display: block;
+        overflow-y: auto;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden;
+        position: relative;
+      }
+      
+      /* Mission District header section */
+      .culture-popup-backdrop.mission-district .mission-header {
+        height: 100vh;
+        width: 100%;
+        background: linear-gradient(transparent 0%, rgba(0,0,0,0.4) 25%, rgba(0,0,0,0.8) 60%, rgba(0,0,0,1) 85%), url('mission.jpg');
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        position: relative;
+        margin: 0;
+        padding: 0 40px;
+        box-sizing: border-box;
+      }
+      
+      /* Mission District header text */
+      .culture-popup-backdrop.mission-district .mission-header .culture-popup-title,
+      .culture-popup-backdrop.mission-district .mission-header .culture-popup-body {
+        width: 100%;
+        max-width: 100%;
+        text-align: left;
+      }
+      
+      /* Mission District scrollable content area */
+      .culture-popup-backdrop.mission-district .mission-content {
+        background: black;
+        width: 100%;
+        margin: 0;
+        padding: 0 0 calc(60px + env(safe-area-inset-bottom));
+        box-sizing: border-box;
+        overflow-x: hidden;
+        position: relative;
+      }
+      
+      /* Mission District content images */
+      .culture-popup-backdrop.mission-district .content-image {
+        width: calc(95% - 40px);
+        max-width: calc(95% - 40px);
+        height: auto;
+        margin: 10px 20px 20px 20px;
+        border-radius: 12px;
+        display: block;
+        object-fit: cover;
+        box-sizing: border-box;
+        position: relative;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      
+      .culture-popup-backdrop.mission-district .content-image:first-child {
+        margin-top: 10px;
+      }
+      
+      .culture-popup-backdrop.mission-district .content-image:last-child {
+        margin-bottom: 0;
+      }
+      
+      /* Default content styling for non-Mission neighborhoods */
+      .default-content {
+        padding: 40px 24px calc(24px + env(safe-area-inset-bottom));
+        width: 100%;
+        margin: 0;
+      }
+      .culture-popup-title {
+        font-family: Helvetica, Arial, sans-serif;
+        font-weight: bold;
+        font-size: 36px;
+        line-height: 38px;
+        color: black;
+        margin: 0 0 16px 0;
+      }
+      .culture-popup-body {
+        font-family: Helvetica, Arial, sans-serif;
+        font-weight: normal;
+        font-size: 18px;
+        line-height: 20px;
+        color: black;
+        margin: 0;
+      }
+      
+      /* Mission District specific typography */
+      .culture-popup-backdrop.mission-district .culture-popup-title {
+        font-size: 45px;
+        line-height: 48px;
+        color: white;
+        margin: 0 0 20px 0;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+      }
+      .culture-popup-backdrop.mission-district .culture-popup-body {
+        font-size: 23px;
+        line-height: 25px;
+        color: white;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+      }
+      
+      /* Responsive adjustments for smaller screens */
+      @media (max-width: 768px) {
+        .culture-popup-title {
+          font-size: 24px;
+          line-height: 26px;
         }
-
-        /* Logo */
-        .logo {
-            align-self: center;
-            background: #3373dc;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        .culture-popup-body {
+          font-size: 12px;
+          line-height: 14px;
         }
-
-        /* Status */
-        .status {
-            align-self: center;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            backdrop-filter: blur(10px);
-            margin-top: 20px;
+        .culture-popup-content {
+          padding: 32px 20px calc(20px + env(safe-area-inset-bottom));
         }
-
-        /* Controls */
-        .controls {
-            align-self: center;
-            pointer-events: auto;
+        
+        /* Mission District responsive overrides */
+        .culture-popup-backdrop.mission-district .culture-popup-title {
+          font-size: 30px;
+          line-height: 33px;
         }
-
-        .scan-button {
-            width: 80px;
-            height: 80px;
-            border: 3px solid white;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+        .culture-popup-backdrop.mission-district .culture-popup-body {
+          font-size: 15px;
+          line-height: 18px;
         }
-
-        .scan-button:hover {
-            transform: scale(1.05);
-            background: rgba(255,255,255,0.2);
+        .culture-popup-backdrop.mission-district .mission-content {
+          padding: 0 0 calc(40px + env(safe-area-inset-bottom));
         }
-
-        .scan-button:active {
-            transform: scale(0.95);
+        .culture-popup-backdrop.mission-district .content-image {
+          width: calc(95% - 32px);
+          max-width: calc(95% - 32px);
+          margin: 8px 16px 16px 16px;
+          margin-left: auto;
+          margin-right: auto;
         }
-
-        /* Billboard Overlay */
-        .billboard-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 500;
-            animation: fadeIn 0.5s ease;
+        .culture-popup-backdrop.mission-district .content-image:first-child {
+          margin-top: 8px;
         }
-
-        .billboard {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            padding: 40px;
-            max-width: 90%;
-            text-align: center;
-            color: white;
-            position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            animation: slideUp 0.6s ease;
+        .culture-popup-backdrop.mission-district .mission-header {
+          padding: 0 24px;
         }
-
-        .billboard h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        .billboard h2 {
-            font-size: 22px;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-
-        .billboard p {
-            font-size: 16px;
-            margin-bottom: 30px;
-            opacity: 0.9;
-            line-height: 1.5;
-        }
-
-        .billboard-cta {
-            background: rgba(255,255,255,0.2);
-            border: 2px solid white;
-            color: white;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .billboard-cta:hover {
-            background: white;
-            color: #667eea;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background: white;
-            border: none;
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: transform 0.2s ease;
-        }
-
-        .close-btn:hover {
-            transform: scale(1.1);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        /* Error Screen */
-        .error-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .error-screen h2 {
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
-
-        .error-screen p {
-            font-size: 16px;
-            margin-bottom: 30px;
-            opacity: 0.9;
-            line-height: 1.5;
-        }
-
-        .retry-btn {
-            background: rgba(255,255,255,0.2);
-            border: 2px solid white;
-            color: white;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .retry-btn:hover {
-            background: white;
-            color: #ee5a24;
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 480px) {
-            .camera-overlay {
-                padding: 30px 15px;
-            }
-            
-            .logo {
-                font-size: 16px;
-                padding: 12px 25px;
-            }
-            
-            .scan-button {
-                width: 70px;
-                height: 70px;
-                font-size: 12px;
-            }
-            
-            .billboard {
-                padding: 30px 20px;
-            }
-            
-            .billboard h1 {
-                font-size: 24px;
-            }
-            
-            .billboard h2 {
-                font-size: 20px;
-            }
-        }
+      }
     </style>
-</head>
-<body>
-    <div id="app">
-        <!-- Loading Screen -->
-        <div id="loading" class="loading-screen">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">Starting Camera...</div>
-        </div>
+  </head>
+  <body>
+    <!-- Full-screen camera feed -->
+    <video id="camera" playsinline autoplay muted></video>
 
-        <!-- Camera Interface -->
-        <div id="camera-container" class="camera-container hidden">
-            <video id="camera" class="camera-video" autoplay muted playsinline></video>
-            
-            <div class="camera-overlay">
-                <div>
-                    <div class="logo">YOUR LOGO</div>
-                    <div id="status" class="status">Ready to scan</div>
-                </div>
-                
-                <div class="controls">
-                    <button id="scan-btn" class="scan-button">SCAN</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Billboard Overlay -->
-        <div id="billboard-overlay" class="billboard-overlay hidden">
-            <div class="billboard">
-                <button id="close-btn" class="close-btn">&times;</button>
-                <h1>YOUR CUSTOM</h1>
-                <h2>BILLBOARD</h2>
-                <p>Replace AI advertisements with your own message!</p>
-                <button class="billboard-cta">Learn More</button>
-            </div>
-        </div>
-
-        <!-- Error Screen -->
-        <div id="error" class="error-screen hidden">
-            <h2>Camera Access Required</h2>
-            <p>This app needs camera access to work. Please allow camera permissions and refresh the page.</p>
-            <button id="retry-btn" class="retry-btn">Try Again</button>
-        </div>
+    <!-- Top overlay logo -->
+    <div class="logo-overlay">
+      <img src="logo.png" alt="Billboard Variations Logo" class="logo-image" />
     </div>
 
-    <!-- Load Tesseract.js for OCR -->
-    <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
-    
+    <!-- Bottom overlay controls -->
+    <div class="overlay-bottom">
+      <div class="status" id="status">Requesting camera…</div>
+      <button id="btnScan" class="scan-btn" disabled>📸 Scan the Billboard</button>
+      
+      <!-- Developer test buttons (remove for production) -->
+      <div class="dev-test-buttons" style="margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
+        <button onclick="showCulturePopup('Mission District')" style="padding: 4px 8px; font-size: 12px; background: rgba(163, 230, 53, 0.2); border: 1px solid #a3e635; color: #a3e635; border-radius: 6px;">Test Mission</button>
+        <button onclick="showCulturePopup('SOMA')" style="padding: 4px 8px; font-size: 12px; background: rgba(34, 211, 238, 0.2); border: 1px solid #22d3ee; color: #22d3ee; border-radius: 6px;">Test SOMA</button>
+        <button onclick="showCulturePopup('Castro')" style="padding: 4px 8px; font-size: 12px; background: rgba(163, 230, 53, 0.2); border: 1px solid #a3e635; color: #a3e635; border-radius: 6px;">Test Castro</button>
+        <button onclick="showCulturePopup('Citywide')" style="padding: 4px 8px; font-size: 12px; background: rgba(255, 255, 255, 0.2); border: 1px solid #fff; color: #fff; border-radius: 6px;">Test Citywide</button>
+        <button onclick="showDetectedPopup(['artificial intelligence', 'machine learning'], 'Mission District')" style="padding: 4px 8px; font-size: 12px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; border-radius: 6px;">Test AI Popup</button>
+      </div>
+    </div>
+
+    <!-- Content area (below the fold) for culture exploration -->
+    <section class="results">
+      <div class="panel culture">
+        <h3 id="neighborhood">Neighborhood: <span class="muted">Detecting…</span></h3>
+        <p id="cultureIntro" class="muted">Scan a billboard to reveal local stories that matter here.</p>
+        <div id="cultureContent" style="display:none"></div>
+      </div>
+    </section>
+
+    <footer>
+      Built for public space. No tracking. Works offline after first load.
+    </footer>
+
+    <canvas id="snapshot" class="visually-hidden" aria-hidden="true"></canvas>
+
+    <!-- Popup overlay -->
+    <div id="popupBackdrop" class="popup-backdrop" aria-hidden="true">
+      <div class="popup-card" role="dialog" aria-label="AI billboard detected" aria-modal="false">
+        <div class="popup-content">
+          <div class="popup-title">🎯 AI Billboard Detected!</div>
+          <div id="popupKeywords" class="popup-keywords"></div>
+          <div id="popupNeighborhood" class="popup-neighborhood"></div>
+          <div id="popupMessage" class="popup-message"></div>
+          <button id="popupExplore" class="popup-btn">Explore Local Culture →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full-screen culture popup -->
+    <div id="culturePopupBackdrop" class="culture-popup-backdrop" aria-hidden="true">
+      <div class="culture-popup-container">
+        <div class="culture-popup-header">
+          <img src="logo.png" alt="Logo" class="culture-popup-logo" onerror="console.log('Logo failed to load'); this.style.display='none';" onload="console.log('Logo loaded successfully');" />
+          <button id="closeCulturePopup" class="culture-close-btn">✕</button>
+        </div>
+        <div class="culture-popup-content">
+          <div id="missionHeader" class="mission-header" style="display: none;">
+            <h1 id="culturePopupTitle" class="culture-popup-title"></h1>
+            <div id="culturePopupBody" class="culture-popup-body"></div>
+          </div>
+          <div id="missionContent" class="mission-content" style="display: none;">
+            <img src="carlossantana.png" alt="Carlos Santana" class="content-image" />
+            <img src="mural.png" alt="Mission District Mural" class="content-image" />
+          </div>
+          
+          <!-- Default content for non-Mission neighborhoods -->
+          <div id="defaultContent" class="default-content">
+            <h1 id="defaultTitle" class="culture-popup-title"></h1>
+            <div id="defaultBody" class="culture-popup-body"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script>
-        class SimpleBillboardScanner {
-            constructor() {
-                // Get DOM elements
-                this.loading = document.getElementById('loading');
-                this.cameraContainer = document.getElementById('camera-container');
-                this.camera = document.getElementById('camera');
-                this.status = document.getElementById('status');
-                this.scanBtn = document.getElementById('scan-btn');
-                this.billboardOverlay = document.getElementById('billboard-overlay');
-                this.closeBtn = document.getElementById('close-btn');
-                this.error = document.getElementById('error');
-                this.retryBtn = document.getElementById('retry-btn');
-                
-                // App state
-                this.isScanning = false;
-                this.scanCount = 0;
-                this.ocrWorker = null;
-                this.ocrReady = false;
-                this.canvas = null;
-                
-                // AI keywords to detect
-                this.aiKeywords = [
-                    'ai', 'artificial intelligence', 'machine learning', 'neural', 'algorithm',
-                    'automated', 'smart technology', 'deep learning', 'computer vision',
-                    'natural language', 'chatbot', 'robotics', 'automation', 'intelligent',
-                    'cognitive', 'predictive', 'analytics', 'data science', 'ml', 'nlp'
-                ];
-                
-                this.init();
-            }
-            
-            async init() {
-                console.log('🚀 Starting Simple Billboard Scanner');
-                
-                try {
-                    // Setup event listeners
-                    this.setupEvents();
-                    
-                    // Initialize OCR in background (don't wait for it)
-                    this.initOCR();
-                    
-                    // Start camera
-                    await this.startCamera();
-                    
-                    // Create canvas for OCR
-                    this.createCanvas();
-                    
-                    // Show camera interface
-                    this.showCamera();
-                    
-                } catch (error) {
-                    console.error('❌ Init failed:', error);
-                    this.showError();
-                }
-            }
-            
-            async initOCR() {
-                console.log('🔍 Initializing OCR in background...');
-                
-                try {
-                    // Wait for Tesseract to be available
-                    let attempts = 0;
-                    while (typeof Tesseract === 'undefined' && attempts < 20) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        attempts++;
-                    }
-                    
-                    if (typeof Tesseract === 'undefined') {
-                        console.warn('⚠️ Tesseract failed to load');
-                        return;
-                    }
-                    
-                    // Create OCR worker
-                    this.ocrWorker = await Tesseract.createWorker('eng', 1, {
-                        logger: m => {
-                            if (m.status === 'recognizing text') {
-                                console.log(`OCR: ${Math.round(m.progress * 100)}%`);
-                            }
-                        }
-                    });
-                    
-                    // Configure OCR
-                    await this.ocrWorker.setParameters({
-                        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-',
-                        tessedit_pageseg_mode: Tesseract.PSM.SPARSE_TEXT
-                    });
-                    
-                    this.ocrReady = true;
-                    console.log('✅ OCR ready');
-                    
-                } catch (error) {
-                    console.warn('⚠️ OCR initialization failed:', error);
-                    this.ocrReady = false;
-                }
-            }
-            
-            createCanvas() {
-                // Create hidden canvas for OCR processing
-                this.canvas = document.createElement('canvas');
-                this.canvas.style.display = 'none';
-                document.body.appendChild(this.canvas);
-            }
-            
-            setupEvents() {
-                // Scan button
-                this.scanBtn.addEventListener('click', () => {
-                    this.handleScan();
-                });
-                
-                // Close billboard
-                this.closeBtn.addEventListener('click', () => {
-                    this.hideBillboard();
-                });
-                
-                // Retry button
-                this.retryBtn.addEventListener('click', () => {
-                    window.location.reload();
-                });
-            }
-            
-            async startCamera() {
-                console.log('📷 Starting camera...');
-                
-                // Check if camera is supported
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error('Camera not supported');
-                }
-                
-                // Get camera stream
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: { ideal: 'environment' },
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                });
-                
-                // Set video source
-                this.camera.srcObject = stream;
-                
-                // Wait for video to load
-                return new Promise((resolve, reject) => {
-                    this.camera.onloadedmetadata = () => {
-                        this.camera.play().then(resolve).catch(reject);
-                    };
-                    this.camera.onerror = reject;
-                });
-            }
-            
-            showCamera() {
-                console.log('✅ Camera ready');
-                this.loading.classList.add('hidden');
-                this.cameraContainer.classList.remove('hidden');
-            }
-            
-            handleScan() {
-                if (this.isScanning) {
-                    this.stopScan();
-                } else {
-                    this.startScan();
-                }
-            }
-            
-            startScan() {
-                console.log('🔍 Starting AI text scan...');
-                this.isScanning = true;
-                this.scanCount = 0;
-                
-                // Update UI
-                this.scanBtn.textContent = 'STOP';
-                this.status.textContent = 'Scanning for AI text...';
-                
-                if (!this.ocrReady) {
-                    // Fallback: simulate scanning if OCR not ready
-                    this.status.textContent = 'OCR loading... using demo mode';
-                    setTimeout(() => {
-                        this.status.textContent = 'AI text detected! (demo)';
-                        this.showBillboard();
-                        this.stopScan();
-                    }, 3000);
-                    return;
-                }
-                
-                // Real OCR scanning
-                this.scanInterval = setInterval(() => {
-                    this.performOCRScan();
-                }, 2000); // Scan every 2 seconds
-                
-                // Also do immediate scan
-                this.performOCRScan();
-            }
-            
-            async performOCRScan() {
-                if (!this.isScanning || !this.ocrWorker || !this.canvas) return;
-                
-                try {
-                    // Capture current camera frame
-                    const ctx = this.canvas.getContext('2d');
-                    this.canvas.width = this.camera.videoWidth || 640;
-                    this.canvas.height = this.camera.videoHeight || 480;
-                    
-                    // Draw video frame to canvas
-                    ctx.drawImage(this.camera, 0, 0, this.canvas.width, this.canvas.height);
-                    
-                    // Convert to image data
-                    const imageData = this.canvas.toDataURL('image/png');
-                    
-                    console.log('🔍 Running OCR on camera frame...');
-                    this.status.textContent = 'Analyzing text...';
-                    
-                    // Perform OCR
-                    const { data: { text, confidence } } = await this.ocrWorker.recognize(imageData);
-                    
-                    console.log(`📝 OCR found: "${text.substring(0, 50)}..." (${confidence}% confidence)`);
-                    
-                    // Check confidence threshold
-                    if (confidence < 60) {
-                        this.status.textContent = 'Text unclear, continuing...';
-                        return;
-                    }
-                    
-                    // Check for AI keywords
-                    const foundKeywords = this.findAIKeywords(text);
-                    
-                    if (foundKeywords.length > 0) {
-                        console.log('🎯 AI keywords found:', foundKeywords);
-                        this.status.textContent = `AI detected: ${foundKeywords[0]}`;
-                        this.showBillboard();
-                        this.stopScan();
-                    } else {
-                        this.status.textContent = 'No AI text found, scanning...';
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ OCR scan failed:', error);
-                    this.status.textContent = 'Scan error, retrying...';
-                }
-            }
-            
-            findAIKeywords(text) {
-                const lowerText = text.toLowerCase();
-                const found = [];
-                
-                for (let keyword of this.aiKeywords) {
-                    if (lowerText.includes(keyword.toLowerCase())) {
-                        found.push(keyword);
-                    }
-                }
-                
-                return found;
-            }
-            
-            stopScan() {
-                console.log('⏹️ Stopping scan');
-                this.isScanning = false;
-                
-                if (this.scanInterval) {
-                    clearInterval(this.scanInterval);
-                    this.scanInterval = null;
-                }
-                
-                // Reset UI
-                this.scanBtn.textContent = 'SCAN';
-                this.status.textContent = 'Ready to scan';
-            }
-            
-            showBillboard() {
-                console.log('📺 Showing billboard');
-                this.billboardOverlay.classList.remove('hidden');
-                
-                // Haptic feedback
-                if (navigator.vibrate) {
-                    navigator.vibrate([100, 50, 100]);
-                }
-                
-                // Auto-hide after 8 seconds
-                setTimeout(() => {
-                    if (!this.billboardOverlay.classList.contains('hidden')) {
-                        this.hideBillboard();
-                    }
-                }, 8000);
-            }
-            
-            hideBillboard() {
-                console.log('❌ Hiding billboard');
-                this.billboardOverlay.classList.add('hidden');
-                this.status.textContent = 'Ready to scan';
-            }
-            
-            showError() {
-                console.log('💥 Showing error screen');
-                this.loading.classList.add('hidden');
-                this.cameraContainer.classList.add('hidden');
-                this.error.classList.remove('hidden');
-            }
+      const AI_KEYWORDS = [
+        "ai","artificial intelligence","machine learning","deep learning","neural network","algorithm","computer vision","nlp","natural language","chatbot","assistant","automation","autonomous","predictive","generative","gen ai","genai","large language model","llm","foundation model","transformer","gpt","chatgpt","bard","gemini","claude","copilot","midjourney","stability ai","stable diffusion","dalle","runway","hugging face","openai","anthropic","google ai","microsoft ai","aws ai","vertex ai","sage","prompt","prompting","rag","retrieval","vector database","embedding","token","training data","fine-tune","finetune","inference","reinforcement learning","rlhf","computer-generated","smart","intelligent","predict","optimize","automate","personalize","recommendation","vision pro","edge ai","on-device ai","ai powered","ai-powered","model","data science","data-driven","cognitive","digital brain","co-pilot","copilot","chat","assistant","ai cloud","ai studio","ml ops","mlops","ai safety","alignment"
+      ];
+
+      const NEIGHBORHOODS = [
+        { name: "Mission District", bounds: [37.747, -122.427, 37.767, -122.403] },
+        { name: "SOMA", bounds: [37.770, -122.411, 37.790, -122.392] },
+        { name: "Castro", bounds: [37.758, -122.447, 37.769, -122.430] },
+        { name: "Chinatown", bounds: [37.791, -122.410, 37.799, -122.401] },
+        { name: "North Beach", bounds: [37.800, -122.412, 37.806, -122.403] },
+        { name: "Tenderloin", bounds: [37.780, -122.420, 37.788, -122.410] },
+        { name: "Financial District", bounds: [37.790, -122.405, 37.797, -122.397] },
+        { name: "Hayes Valley", bounds: [37.770, -122.431, 37.778, -122.420] },
+        { name: "Haight-Ashbury", bounds: [37.765, -122.454, 37.772, -122.441] },
+        { name: "Noe Valley", bounds: [37.740, -122.442, 37.753, -122.424] },
+        { name: "Bernal Heights", bounds: [37.731, -122.424, 37.748, -122.404] },
+        { name: "Dogpatch", bounds: [37.752, -122.390, 37.766, -122.371] },
+        { name: "Potrero Hill", bounds: [37.750, -122.404, 37.764, -122.392] },
+        { name: "The Marina", bounds: [37.800, -122.449, 37.807, -122.428] },
+        { name: "Pacific Heights", bounds: [37.788, -122.444, 37.800, -122.426] },
+        { name: "Outer Sunset", bounds: [37.738, -122.511, 37.762, -122.483] },
+        { name: "Inner Sunset", bounds: [37.755, -122.483, 37.765, -122.454] },
+        { name: "Outer Richmond", bounds: [37.775, -122.509, 37.785, -122.480] },
+        { name: "Inner Richmond", bounds: [37.775, -122.480, 37.785, -122.454] },
+        { name: "Bayview", bounds: [37.721, -122.402, 37.742, -122.375] },
+      ];
+
+      const CULTURE = {
+        "Mission District": { intro: "Here's what the Mission is really about:", body: [
+          "A cradle of Latino culture and the birthplace of Carlos Santana's sound.",
+          "Murals that speak of survival, dignity, and joy — a gallery without walls.",
+          "Community organizing that has defended working families for decades."
+        ]},
+        "SOMA": { intro: "Before startups, there was a working-class SOMA:", body: [
+          "Union halls, warehouses, and Filipino community anchors.",
+          "Stories of displacement — and of resistance shaped by solidarity.",
+          "Culture that never fit into pitch decks or product roadmaps."
+        ]},
+        "Castro": { intro: "Built by LGBTQ+ organizers, not algorithms:", body: [
+          "From Harvey Milk to everyday neighbors who made joy political.",
+          "Mutual aid, queer nightlife, and chosen families as infrastructure.",
+          "History written through marches, care, and courage."
+        ]},
+        "Chinatown": { intro: "Oldest Chinatown in North America:", body: [
+          "A sanctuary built against exclusion and violence.",
+          "Lion dances, herbal shops, newspapers, and intergenerational care.",
+          "Culture that survives by showing up for one another."
+        ]},
+        "North Beach": { intro: "From the Beats to bakery lines at dawn:", body: [
+          "Poetry readings that reimagined America.",
+          "Italian bakeries, cafés, and stoops as daily rituals.",
+          "A neighborhood stitched together by conversation."
+        ]},
+        "Tenderloin": { intro: "The Tenderloin has always held the line:", body: [
+          "Single-room hotels, immigrant kitchens, and harm-reduction pioneers.",
+          "Trans history made on Turk and Taylor long before hashtags.",
+          "Faith groups and nonprofits that feed, house, and defend."
+        ]},
+        "Financial District": { intro: "Behind the glass, older stories endure:", body: [
+          "Longshore strikes that reshaped labor rights.",
+          "Newspapers and newsboys — an information city before the internet.",
+          "Street vendors and secret stairways threading the hills."
+        ]},
+        "Hayes Valley": { intro: "From freeway shadow to streetlife revival:", body: [
+          "Neighbors removed a highway, and a culture of strolling came back.",
+          "Jazz lounges, parklets, and block parties as urban design.",
+          "Small shops with big memories tucked into every side street."
+        ]},
+        "Haight-Ashbury": { intro: "Psychedelic posters and cooperative living:", body: [
+          "A sound that echoed from row houses to the world.",
+          "Free clinics and crash pads — care as a civic experiment.",
+          "Counterculture that still whispers in thrift racks and porches."
+        ]},
+        "Noe Valley": { intro: "Hills, row houses, and sidewalk chats:", body: [
+          "Independent bookstores and playground politics.",
+          "Community boards where neighbors actually read the flyers.",
+          "A valley that keeps its pace and its people."
+        ]},
+        "Bernal Heights": { intro: "A hillside of gardens and gatherings:", body: [
+          "Activist radio and foggy sunrise dog walks on the hill.",
+          "Yard sales that somehow become block parties.",
+          "Mamas and abuelas who know everyone's name."
+        ]},
+        "Dogpatch": { intro: "Shipyards, studios, and stubborn beauty:", body: [
+          "Makerspaces in old industrial shells.",
+          "Waterfront walks that hold time differently.",
+          "A neighborhood that welds history to what's next."
+        ]},
+        "Potrero Hill": { intro: "Skyline views, kitchen tables, and labor lore:", body: [
+          "Community gardens perched above the Bay.",
+          "Potlucks that outlast the workday.",
+          "A hill that remembers who built this city."
+        ]},
+        "The Marina": { intro: "Tides, trails, and the Palace by the water:", body: [
+          "Weekend runs that end with wind and salt.",
+          "Classics cruising down Lombard at golden hour.",
+          "A neighborhood lit by bridges and bay light."
+        ]},
+        "Pacific Heights": { intro: "Stairs, spires, and stained glass:", body: [
+          "Victorians that remember earthquakes and after-parties.",
+          "Pocket parks as living rooms with a view.",
+          "A ridge of stories looking out to sea."
+        ]},
+        "Outer Sunset": { intro: "Dunes tamed, ocean untamed:", body: [
+          "Ceramics studios and surf wax on back steps.",
+          "Fog that teaches patience and poetry.",
+          "Taraval and Judah as living timelines."
+        ]},
+        "Inner Sunset": { intro: "Golden Gate Park's front porch:", body: [
+          "Tea houses, science museums, and picnics on the meadow.",
+          "Dim sum at noon, pho at night — and a walk between.",
+          "Neighbors who trade cuttings and recipes."
+        ]},
+        "Outer Richmond": { intro: "Cliff edges and comfort food:", body: [
+          "Sea lions at Sutro and steam from hot pots.",
+          "Russian bakeries and lunar new year lanterns.",
+          "A west wind carrying so many languages."
+        ]},
+        "Inner Richmond": { intro: "Libraries, line cooks, and long walks:", body: [
+          "Bookstores for every obsession.",
+          "Dim sum lines that double as reunions.",
+          "Clement Street as a passport."
+        ]},
+        "Bayview": { intro: "Shipwrights, murals, and mutual aid:", body: [
+          "Black San Francisco built here and still building.",
+          "Community farms and radio stations threading the hills.",
+          "Bay breezes, cookouts, and block parties that last."
+        ]},
+        "Citywide": { intro: "Wherever you are in SF, remember:", body: [
+          "This city is built by people, not platforms.",
+          "Culture is a verb you do with your neighbors.",
+          "Advertising is loud; community is louder."
+        ]}
+      };
+
+      const els = {
+        video: document.getElementById('camera'),
+        scan: document.getElementById('btnScan'),
+        status: document.getElementById('status'),
+        snapshot: document.getElementById('snapshot'),
+        neighborhood: document.getElementById('neighborhood'),
+        cultureIntro: document.getElementById('cultureIntro'),
+        cultureContent: document.getElementById('cultureContent'),
+        popupBackdrop: document.getElementById('popupBackdrop'),
+        popupKeywords: document.getElementById('popupKeywords'),
+        popupNeighborhood: document.getElementById('popupNeighborhood'),
+        popupMessage: document.getElementById('popupMessage'),
+        popupExplore: document.getElementById('popupExplore'),
+        culturePopupBackdrop: document.getElementById('culturePopupBackdrop'),
+        culturePopupTitle: document.getElementById('culturePopupTitle'),
+        culturePopupBody: document.getElementById('culturePopupBody'),
+        closeCulturePopup: document.getElementById('closeCulturePopup'),
+        missionHeader: document.getElementById('missionHeader'),
+        missionContent: document.getElementById('missionContent'),
+        defaultContent: document.getElementById('defaultContent'),
+        defaultTitle: document.getElementById('defaultTitle'),
+        defaultBody: document.getElementById('defaultBody'),
+      };
+
+      let videoStream = null;
+      let currentNeighborhoodName = null;
+      let popupHideTimer = null;
+      let lastPopupAt = 0;
+
+      function setStatus(text, loading = false) {
+        els.status.innerHTML = loading ? `<span class="spinner"></span> ${text}` : text;
+      }
+
+      function inBounds(lat, lon, bounds) {
+        const [minLat, minLon, maxLat, maxLon] = bounds;
+        return lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon;
+      }
+
+      function detectNeighborhood(coords) {
+        if (!coords) return null;
+        const { latitude, longitude } = coords;
+        for (const n of NEIGHBORHOODS) {
+          if (inBounds(latitude, longitude, n.bounds)) return n.name;
+        }
+        return null;
+      }
+
+      function updateCulture(neighborhoodName) {
+        const name = neighborhoodName || 'Citywide';
+        currentNeighborhoodName = name;
+        const content = CULTURE[name] || CULTURE['Citywide'];
+        els.neighborhood.innerHTML = `Neighborhood: <span>${name}</span>`;
+        els.cultureIntro.textContent = content.intro;
+        els.cultureContent.innerHTML = content.body.map(p => `<p>${p}</p>`).join('');
+        els.cultureContent.style.display = 'block';
+      }
+
+      async function getLocationAndUpdate() {
+        if (!('geolocation' in navigator)) {
+          updateCulture(null);
+          return;
+        }
+        return new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition((pos) => {
+            const neighborhood = detectNeighborhood(pos.coords);
+            updateCulture(neighborhood);
+            resolve(neighborhood);
+          }, (err) => {
+            console.warn('Geolocation error', err);
+            updateCulture(null);
+            resolve(null);
+          }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 });
+        });
+      }
+
+      async function startCamera() {
+        try {
+          setStatus('Requesting camera…', true);
+          videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+          els.video.srcObject = videoStream;
+          const settings = videoStream.getVideoTracks()[0]?.getSettings?.() || {};
+          if (settings.facingMode !== 'user') {
+            els.video.style.transform = 'none';
+          }
+          els.scan.disabled = false;
+          setStatus('Ready to scan');
+        } catch (e) {
+          console.error(e);
+          setStatus('Camera permission denied or unavailable. Tap to retry.');
+        }
+      }
+
+      function drawVideoToCanvas(maxWidth = 1280) {
+        const video = els.video;
+        const canvas = els.snapshot;
+        const ratio = video.videoWidth / video.videoHeight || 1.777;
+        const targetWidth = Math.min(maxWidth, video.videoWidth || maxWidth);
+        const targetHeight = Math.round(targetWidth / ratio);
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+        return canvas;
+      }
+
+      function extractKeywordsFromText(text) {
+        const hay = (text || '').toLowerCase();
+        const found = new Set();
+        for (const term of AI_KEYWORDS) {
+          const t = term.toLowerCase();
+          if (hay.includes(t)) found.add(t);
+        }
+        return Array.from(found).sort();
+      }
+
+      function formatKeywordsForPopup(terms, max = 4) {
+        const shown = terms.slice(0, max).map(t => `'${t}'`);
+        const extra = terms.length - shown.length;
+        return extra > 0 ? `Found: ${shown.join(', ')} +${extra} more` : `Found: ${shown.join(', ')}`;
+      }
+
+      function showDetectedPopup(terms, neighborhoodName) {
+        if (!terms || terms.length === 0) return;
+        const now = Date.now();
+        if (now - lastPopupAt < 7000) return; // cooldown to avoid rapid repeats
+        lastPopupAt = now;
+
+        const name = neighborhoodName || currentNeighborhoodName || 'San Francisco';
+        els.popupKeywords.textContent = formatKeywordsForPopup(terms);
+        els.popupNeighborhood.textContent = `You're in ${name}`;
+        els.popupMessage.textContent = `Discover what makes this neighborhood unique.`;
+        els.popupBackdrop.classList.add('show');
+        clearTimeout(popupHideTimer);
+        popupHideTimer = setTimeout(hideDetectedPopup, 9000);
+      }
+
+      function hideDetectedPopup() {
+        els.popupBackdrop.classList.remove('show');
+      }
+
+      function showCulturePopup(neighborhoodName) {
+        const name = neighborhoodName || currentNeighborhoodName || 'San Francisco';
+        
+        // Remove any existing neighborhood classes
+        els.culturePopupBackdrop.classList.remove('mission-district');
+        
+        // Hide all content sections first
+        els.missionHeader.style.display = 'none';
+        els.missionContent.style.display = 'none';
+        els.defaultContent.style.display = 'none';
+        
+        // Special content for Mission District matching your design
+        if (name === 'Mission District') {
+          els.culturePopupTitle.textContent = 'Welcome to Mission District';
+          els.culturePopupBody.textContent = "The Mission is SF's most vibrant Latino neighborhood, known for authentic Mexican culture, incredible street food (burritos were invented here), and world-famous murals along Balmy Alley and 24th Street.";
+          
+          // Show Mission District sections
+          els.missionHeader.style.display = 'flex';
+          els.missionContent.style.display = 'block';
+          
+          // Add Mission District specific styling
+          els.culturePopupBackdrop.classList.add('mission-district');
+        } else {
+          // Default content for other neighborhoods
+          const content = CULTURE[name] || CULTURE['Citywide'];
+          els.defaultTitle.textContent = `Welcome to ${name}`;
+          els.defaultBody.textContent = content.intro + ' ' + content.body.join(' ');
+          
+          // Show default content
+          els.defaultContent.style.display = 'block';
         }
         
-        // Start the app when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🎬 DOM loaded, starting app...');
-            window.scanner = new SimpleBillboardScanner();
+        els.culturePopupBackdrop.classList.add('show');
+      }
+
+      function hideCulturePopup() {
+        els.culturePopupBackdrop.classList.remove('show');
+      }
+
+      async function scanBillboard() {
+        setStatus('Scanning…', true);
+        const canvas = drawVideoToCanvas(1280);
+        try {
+          const { data } = await Tesseract.recognize(canvas, 'eng', { logger: m => { if (m.status === 'recognizing text') setStatus(`Scanning… ${(m.progress*100).toFixed(0)}%`, true); } });
+          const text = data?.text || '';
+          const terms = extractKeywordsFromText(text);
+          if (terms.length) {
+            setStatus('AI detected!');
+            showDetectedPopup(terms, currentNeighborhoodName);
+          } else {
+            setStatus('No AI text detected. Try a closer angle or different ad.');
+          }
+        } catch (e) {
+          console.error(e);
+          setStatus('OCR failed. Try again.');
+        }
+      }
+
+      async function registerServiceWorker() {
+        if (!('serviceWorker' in navigator)) return;
+        try {
+          await navigator.serviceWorker.register('sw.js');
+        } catch (e) {
+          console.warn('SW registration failed', e);
+        }
+      }
+
+      async function init() {
+        registerServiceWorker();
+        await getLocationAndUpdate();
+        startCamera(); // try to auto-start immediately
+
+        // manual scan
+        els.scan.addEventListener('click', scanBillboard);
+
+        // fallback gesture to kick camera on iOS if needed
+        document.addEventListener('touchstart', function once() {
+          document.removeEventListener('touchstart', once);
+          if (!videoStream) startCamera();
+        }, { passive: true });
+
+        els.popupBackdrop.addEventListener('click', (e) => {
+          if (e.target === els.popupBackdrop) hideDetectedPopup();
         });
+        els.popupExplore.addEventListener('click', () => {
+          hideDetectedPopup();
+          showCulturePopup();
+        });
+
+        els.closeCulturePopup.addEventListener('click', hideCulturePopup);
         
-        // Global error handling
-        window.addEventListener('error', (e) => {
-            console.error('💥 Global error:', e.error);
+        els.culturePopupBackdrop.addEventListener('click', (e) => {
+          if (e.target === els.culturePopupBackdrop) hideCulturePopup();
         });
+      }
+
+      init();
     </script>
-</body>
+  </body>
 </html>
