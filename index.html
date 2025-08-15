@@ -38,12 +38,7 @@
         left: 50%;
         transform: translateX(-50%);
         z-index: 1000;
-        background: #a3e635;
-        color: #000;
-        padding: 15px 30px;
-        border-radius: 8px;
-        font-size: 18px;
-        font-weight: bold;
+        /* Removed background, padding, and styling for clean logo display */
       }
 
       /* Bottom controls */
@@ -193,12 +188,12 @@
       <div class="status" id="status">Starting...</div>
       <button id="scanBtn" class="scan-btn" disabled>📸 Scan for AI Text</button>
       
-      <!-- Simple test buttons -->
-      <div class="test-buttons">
+      <!-- Test buttons hidden for clean interface -->
+      <!-- <div class="test-buttons">
         <button onclick="testShowImage()">🧪 Test Show Image</button>
         <button onclick="simulateAIDetection()">🤖 Simulate AI Detection</button>
         <button onclick="testImagePaths()">🔍 Test All Paths</button>
-      </div>
+      </div> -->
     </div>
 
     <!-- CLEAN IMAGE OVERLAY - Just the image, no text, no background -->
@@ -309,7 +304,7 @@
           
           billboardImage.onload = () => {
             debugLog(`✅ SUCCESS! Image loaded from: ${imagePath}`);
-            setStatus(`✅ Image loaded from: ${imagePath}`);
+            setStatus('Ready to scan'); // Clean status instead of showing file path
             billboardOverlay.classList.add('show');
           };
           
