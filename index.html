@@ -322,11 +322,10 @@
           billboardImage.src = imagePath;
           
           debugLog(`📸 Trying path ${currentPathIndex + 1}: ${imagePath}`);
-          setStatus(`Testing image path: ${imagePath}`);
           
           billboardImage.onload = () => {
             debugLog(`✅ SUCCESS! Image loaded from: ${imagePath}`);
-            setStatus('Ready to scan'); // Clean status instead of showing file path
+            // Don't change status here - keep the AI detection message
             billboardOverlay.classList.add('show');
           };
           
