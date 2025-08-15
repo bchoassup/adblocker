@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AI Billboard Scanner</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="loading-screen">
+            <div class="loading-spinner"></div>
+            <p>Initializing Camera & OCR...</p>
+        </div>
+
+        <!-- Main Camera Interface -->
+        <div id="camera-container" class="camera-container hidden">
+            <!-- Camera Video Element -->
+            <video id="camera-video" class="camera-video" autoplay muted playsinline></video>
+            
+            <!-- Hidden Canvas for OCR Processing -->
+            <canvas id="ocr-canvas" class="hidden"></canvas>
+            
+            <!-- UI Overlay -->
+            <div class="ui-overlay">
+                <!-- Top Logo Area -->
+                <div class="logo-container">
+                    <img id="logo" src="assets/logo-placeholder.svg" alt="Logo" class="logo">
+                </div>
+                
+                <!-- Detection Status Indicator -->
+                <div id="detection-status" class="detection-status">
+                    <div class="status-indicator"></div>
+                    <span class="status-text">Scanning...</span>
+                </div>
+                
+                <!-- Bottom Controls -->
+                <div class="bottom-controls">
+                    <button id="scan-button" class="scan-button">
+                        <span class="scan-text">SCAN</span>
+                        <div class="scan-pulse"></div>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Custom Billboard Overlay -->
+            <div id="billboard-overlay" class="billboard-overlay hidden">
+                <div class="billboard-container">
+                    <img id="billboard-image" src="assets/billboard-placeholder.svg" alt="Custom Billboard" class="billboard-image">
+                    <button id="close-billboard" class="close-button">&times;</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Error Screen -->
+        <div id="error-screen" class="error-screen hidden">
+            <div class="error-content">
+                <h2>Camera Access Required</h2>
+                <p>This app needs camera access to detect AI billboards. Please allow camera permissions and refresh the page.</p>
+                <button id="retry-button" class="retry-button">Try Again</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tesseract.js OCR Library -->
+    <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
