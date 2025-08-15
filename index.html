@@ -103,16 +103,16 @@
         cursor: pointer;
       }
 
-      /* BILLBOARD IMAGE OVERLAY - THE MAIN THING WE'RE TESTING */
+      /* CLEAN IMAGE OVERLAY - NO BACKGROUND, JUST IMAGE */
       .billboard-overlay {
         position: fixed;
         inset: 0;
         z-index: 9999;
-        background: rgba(0, 0, 0, 0.9);
+        background: transparent;
         display: none;
         align-items: center;
         justify-content: center;
-        flex-direction: column;
+        pointer-events: auto;
       }
 
       .billboard-overlay.show {
@@ -120,19 +120,10 @@
       }
 
       .billboard-image {
-        max-width: 90vw;
-        max-height: 70vh;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        border: 3px solid #a3e635;
-      }
-
-      .billboard-title {
-        font-size: 28px;
-        font-weight: bold;
-        color: #a3e635;
-        text-align: center;
-        margin-bottom: 20px;
+        max-width: 80vw;
+        max-height: 60vh;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
       }
 
       .close-btn {
@@ -209,11 +200,10 @@
       </div>
     </div>
 
-    <!-- BILLBOARD OVERLAY - This is what we're trying to get working -->
+    <!-- CLEAN IMAGE OVERLAY - Just the image, no text, no background -->
     <div id="billboardOverlay" class="billboard-overlay">
       <button id="closeBtn" class="close-btn">✕</button>
-      <div class="billboard-title">Mission District</div>
-      <img id="billboardImage" class="billboard-image" src="assets/mission.jpg" alt="Mission District Billboard" />
+      <img id="billboardImage" class="billboard-image" alt="Billboard" />
     </div>
 
     <canvas id="canvas" class="hidden"></canvas>
@@ -282,37 +272,35 @@
         }
       }
 
-      // Show billboard image - THE MAIN FUNCTION WE'RE TESTING
+      // Show billboard image - FIXED VERSION
       function showBillboardImage() {
         debugLog('🎬 Attempting to show billboard image...');
         
-        // Check if image element exists
-        if (!billboardImage) {
-          debugLog('❌ Billboard image element not found!');
-          return;
-        }
-
-        // Check image source
-        debugLog(`📸 Image src: ${billboardImage.src}`);
+        // Set the correct image path
+        const imagePath = 'assets/mission.jpg';
+        billboardImage.src = imagePath;
         
-        // Show the overlay
-        billboardOverlay.classList.add('show');
-        debugLog('✅ Billboard overlay shown');
+        debugLog(`📸 Loading image from: ${imagePath}`);
         
         // Test if image loads
         billboardImage.onload = () => {
           debugLog('✅ Image loaded successfully');
+          // Show the overlay only after image loads
+          billboardOverlay.classList.add('show');
+          debugLog('✅ Billboard overlay shown');
         };
         
         billboardImage.onerror = (error) => {
-          debugLog(`❌ Image failed to load: ${error}`);
-          debugLog(`❌ Attempted to load: ${billboardImage.src}`);
+          debugLog(`❌ Image failed to load from: ${imagePath}`);
+          debugLog('❌ Check if assets/mission.jpg exists in your repo');
+          // Still show overlay with broken image for debugging
+          billboardOverlay.classList.add('show');
         };
 
-        // Auto-hide after 8 seconds
+        // Auto-hide after 6 seconds
         setTimeout(() => {
           hideBillboardImage();
-        }, 8000);
+        }, 6000);
       }
 
       // Hide billboard image
