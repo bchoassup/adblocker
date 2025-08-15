@@ -197,6 +197,7 @@
       <div class="test-buttons">
         <button onclick="testShowImage()">🧪 Test Show Image</button>
         <button onclick="simulateAIDetection()">🤖 Simulate AI Detection</button>
+        <button onclick="testImagePaths()">🔍 Test All Paths</button>
       </div>
     </div>
 
@@ -272,35 +273,60 @@
         }
       }
 
-      // Show billboard image - FIXED VERSION
+      // Show billboard image - DEBUG VERSION
       function showBillboardImage() {
         debugLog('🎬 Attempting to show billboard image...');
         
-        // Set the correct image path
-        const imagePath = 'assets/mission.jpg';
-        billboardImage.src = imagePath;
+        // Try multiple possible paths (logo.png location first since that works)
+        const possiblePaths = [
+          'mission.jpg',           // Same location as logo.png
+          'assets/mission.jpg',    // In assets folder
+          './mission.jpg',         // Explicit relative path
+          './assets/mission.jpg'   // Explicit relative assets path
+        ];
         
-        debugLog(`📸 Loading image from: ${imagePath}`);
+        let currentPathIndex = 0;
         
-        // Test if image loads
-        billboardImage.onload = () => {
-          debugLog('✅ Image loaded successfully');
-          // Show the overlay only after image loads
-          billboardOverlay.classList.add('show');
-          debugLog('✅ Billboard overlay shown');
-        };
+        function tryNextPath() {
+          if (currentPathIndex >= possiblePaths.length) {
+            debugLog('❌ All image paths failed');
+            setStatus('❌ Image not found - check file upload');
+            // Show overlay anyway so you can see it's working
+            billboardOverlay.classList.add('show');
+            // Create a placeholder
+            billboardImage.style.background = '#a3e635';
+            billboardImage.style.width = '300px';
+            billboardImage.style.height = '200px';
+            billboardImage.alt = 'Image not found - check assets/mission.jpg';
+            return;
+          }
+          
+          const imagePath = possiblePaths[currentPathIndex];
+          billboardImage.src = imagePath;
+          
+          debugLog(`📸 Trying path ${currentPathIndex + 1}: ${imagePath}`);
+          setStatus(`Testing image path: ${imagePath}`);
+          
+          billboardImage.onload = () => {
+            debugLog(`✅ SUCCESS! Image loaded from: ${imagePath}`);
+            setStatus(`✅ Image loaded from: ${imagePath}`);
+            billboardOverlay.classList.add('show');
+          };
+          
+          billboardImage.onerror = () => {
+            debugLog(`❌ Failed: ${imagePath}`);
+            currentPathIndex++;
+            setTimeout(tryNextPath, 500);
+          };
+        }
         
-        billboardImage.onerror = (error) => {
-          debugLog(`❌ Image failed to load from: ${imagePath}`);
-          debugLog('❌ Check if assets/mission.jpg exists in your repo');
-          // Still show overlay with broken image for debugging
-          billboardOverlay.classList.add('show');
-        };
+        // Start trying paths
+        tryNextPath();
 
-        // Auto-hide after 6 seconds
+        // Auto-hide after 8 seconds
         setTimeout(() => {
           hideBillboardImage();
-        }, 6000);
+        }, 8000);
       }
 
       // Hide billboard image
@@ -313,6 +339,55 @@
       function testShowImage() {
         debugLog('🧪 TEST: Direct image show');
         showBillboardImage();
+      }
+
+      // Test all possible image paths
+      function testImagePaths() {
+        setStatus('🔍 Testing paths... (check console)');
+        console.log('🔍 === TESTING IMAGE PATHS ===');
+        
+        // First test the logo path that we know works
+        const testImg1 = new Image();
+        testImg1.onload = () => {
+          console.log('✅ Logo loads fine from: logo.png');
+        };
+        testImg1.onerror = () => {
+          console.log('❌ Logo failed from: logo.png');
+        };
+        testImg1.src = 'logo.png';
+        
+        // Now test mission.jpg in same location as logo
+        const testImg2 = new Image();
+        testImg2.onload = () => {
+          console.log('✅ SUCCESS! mission.jpg found at root level');
+          setStatus('✅ Found mission.jpg at root level!');
+        };
+        testImg2.onerror = () => {
+          console.log('❌ mission.jpg not found at root level');
+        };
+        testImg2.src = 'mission.jpg';
+        
+        // Test other common paths
+        const testPaths = [
+          'assets/mission.jpg',
+          './assets/mission.jpg',
+          'mission.jpeg',
+          'assets/mission.jpeg'
+        ];
+        
+        testPaths.forEach((path, index) => {
+          setTimeout(() => {
+            const testImg = new Image();
+            testImg.onload = () => {
+              setStatus(`✅ FOUND: ${path}`);
+              console.log(`✅ Image found at: ${path}`);
+            };
+            testImg.onerror = () => {
+              console.log(`❌ Not found: ${path}`);
+            };
+            testImg.src = path;
+          }, (index + 1) * 100);
+        });
       }
 
       // Simulate AI detection without OCR
