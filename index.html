@@ -93,6 +93,17 @@
         opacity: 0.5; 
       }
 
+      /* Neighborhood cycle indicator */
+      .neighborhood-indicator {
+        color: rgba(255,255,255,0.7);
+        font-size: 14px;
+        text-align: center;
+        background: rgba(0,0,0,0.5);
+        padding: 6px 12px;
+        border-radius: 15px;
+        border: 1px solid rgba(255,255,255,0.2);
+      }
+
       /* Test buttons */
       .test-buttons {
         display: flex;
@@ -199,6 +210,7 @@
     <!-- Controls -->
     <div class="controls">
       <div class="status" id="status">Starting...</div>
+      <div class="neighborhood-indicator" id="neighborhoodIndicator">Next: Mission District (1/5)</div>
       <button id="scanBtn" class="scan-btn" disabled>📸 Scan for AI Text</button>
       
       <!-- Test buttons hidden for clean interface -->
@@ -224,10 +236,22 @@
         "ai", "artificial intelligence", "machine learning", "chatbot", "smart", "intelligent"
       ];
 
+      // Cycling billboard neighborhoods (Mission → Chinatown → Japantown → North Beach → Castro)
+      const NEIGHBORHOODS = [
+        { name: 'Mission District', image: 'mission.jpg' },
+        { name: 'Chinatown', image: 'chinatown.jpg' },
+        { name: 'Japantown', image: 'japantown.jpg' },
+        { name: 'North Beach', image: 'northbeach.jpg' },
+        { name: 'Castro', image: 'castro.jpg' }
+      ];
+      
+      let currentNeighborhoodIndex = 0;
+
       // Elements
       const camera = document.getElementById('camera');
       const scanBtn = document.getElementById('scanBtn');
       const status = document.getElementById('status');
+      const neighborhoodIndicator = document.getElementById('neighborhoodIndicator');
       const billboardOverlay = document.getElementById('billboardOverlay');
       const billboardImage = document.getElementById('billboardImage');
       const closeBtn = document.getElementById('closeBtn');
@@ -245,6 +269,13 @@
           debugInfo.innerHTML += `<div>${time}: ${message}</div>`;
           debugInfo.scrollTop = debugInfo.scrollHeight;
         }
+      }
+
+      // Update neighborhood indicator
+      function updateNeighborhoodIndicator() {
+        const current = NEIGHBORHOODS[currentNeighborhoodIndex];
+        neighborhoodIndicator.textContent = `Next: ${current.name} (${currentNeighborhoodIndex + 1}/${NEIGHBORHOODS.length})`;
+        debugLog(`🔄 Indicator updated: Next billboard will be ${current.name}`);
       }
 
       // Set status with optional loading and styling
@@ -290,42 +321,41 @@
         }
       }
 
-      // Show billboard image - DEBUG VERSION
+      // Show billboard image - CYCLING VERSION
       function showBillboardImage() {
-        debugLog('🎬 Attempting to show billboard image...');
+        const currentNeighborhood = NEIGHBORHOODS[currentNeighborhoodIndex];
+        debugLog(`🎬 Showing billboard for: ${currentNeighborhood.name} (${currentNeighborhoodIndex + 1}/${NEIGHBORHOODS.length})`);
         
-        // Try multiple possible paths (logo.png location first since that works)
+        // Try multiple possible paths for the current neighborhood image
         const possiblePaths = [
-          'mission.jpg',           // Same location as logo.png
-          'assets/mission.jpg',    // In assets folder
-          './mission.jpg',         // Explicit relative path
-          './assets/mission.jpg'   // Explicit relative assets path
+          currentNeighborhood.image,           // Same location as logo.png
+          `assets/${currentNeighborhood.image}`,    // In assets folder
+          `./${currentNeighborhood.image}`,         // Explicit relative path
+          `./assets/${currentNeighborhood.image}`   // Explicit relative assets path
         ];
         
         let currentPathIndex = 0;
         
         function tryNextPath() {
           if (currentPathIndex >= possiblePaths.length) {
-            debugLog('❌ All image paths failed');
-            setStatus('❌ Image not found - check file upload');
-            // Show overlay anyway so you can see it's working
+            debugLog(`❌ All paths failed for ${currentNeighborhood.name}`);
+            setStatus(`❌ ${currentNeighborhood.name} image not found`);
+            // Show overlay anyway with placeholder
             billboardOverlay.classList.add('show');
-            // Create a placeholder
             billboardImage.style.background = '#a3e635';
             billboardImage.style.width = '300px';
             billboardImage.style.height = '200px';
-            billboardImage.alt = 'Image not found - check assets/mission.jpg';
+            billboardImage.alt = `${currentNeighborhood.name} - Image not found`;
             return;
           }
           
           const imagePath = possiblePaths[currentPathIndex];
           billboardImage.src = imagePath;
           
-          debugLog(`📸 Trying path ${currentPathIndex + 1}: ${imagePath}`);
+          debugLog(`📸 Trying ${currentNeighborhood.name} - path ${currentPathIndex + 1}: ${imagePath}`);
           
           billboardImage.onload = () => {
-            debugLog(`✅ SUCCESS! Image loaded from: ${imagePath}`);
-            // Don't change status here - keep the AI detection message
+            debugLog(`✅ SUCCESS! ${currentNeighborhood.name} loaded from: ${imagePath}`);
             billboardOverlay.classList.add('show');
           };
           
@@ -338,6 +368,10 @@
         
         // Start trying paths
         tryNextPath();
+
+        // Advance to next neighborhood for next detection
+        currentNeighborhoodIndex = (currentNeighborhoodIndex + 1) % NEIGHBORHOODS.length;
+        updateNeighborhoodIndicator();
 
         // Auto-hide after 8 seconds
         setTimeout(() => {
@@ -470,6 +504,9 @@
       async function init() {
         debugLog('🚀 App starting...');
         setStatus('Initializing...', true);
+        
+        // Set initial neighborhood indicator
+        updateNeighborhoodIndicator();
         
         await startCamera();
         
